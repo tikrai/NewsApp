@@ -25,19 +25,25 @@ class MainActivity : AppCompatActivity() {
                 beginSearch(edit_search.text.toString())
             }
         }
-
     }
 
     private fun beginSearch(searchstring: String) {
-        disposable =
-            newsApiServe
-                .hitCountCheck(searchstring, "2019-10-13", "publishedAt", "57a79eac5a8f44efa2bd3408139b83f3")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { result -> txt_search_result.text = "${result.articles[0]}" },
-                    { error -> Toast.makeText(this, error.message, Toast.LENGTH_SHORT).show() }
-                )
+        disposable = newsApiServe
+            .hitCountCheck(searchstring, "2019-10-13", "publishedAt", "57a79eac5a8f44efa2bd3408139b83f3")
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { result -> showResult(result) },
+                { error -> showError(error.message) }
+            )
+    }
+
+    private fun showResult(result: Model.Result) {
+        txt_search_result.text = "${result.articles[0]}"
+    }
+
+    private fun showError(error: Any?) {
+        Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show()
     }
 
     override fun onPause() {
