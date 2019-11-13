@@ -3,6 +3,7 @@ package com.example.newsapp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -39,7 +40,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showResult(result: Model.Result) {
-        txt_search_result.text = "${result.articles[0]}"
+        txt_search_result.text = "Total results ${result.totalResults}"
+        textView0.text = "${result.articles[0].title}"
+        Picasso.with(this).load(result.articles[0].urlToImage).into(imageView0)
+        textView1.text = "${result.articles[1].title}"
+        Picasso.with(this).load(result.articles[1].urlToImage).into(imageView1)
     }
 
     private fun showError(error: Any?) {
