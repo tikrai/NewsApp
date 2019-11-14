@@ -1,5 +1,6 @@
 package com.example.newsapp
 
+import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -77,7 +78,7 @@ class MainActivity : AppCompatActivity() {
 
         val articleDateView = TextView(this)
         articleDateView.gravity = CENTER
-        articleDateView.text = formatTime(article.publishedAt)
+        articleDateView.text = formatDateTime(article.publishedAt)
 
         val articleTextLayout = LinearLayout(this)
         articleTextLayout.orientation = LinearLayout.VERTICAL
@@ -102,6 +103,11 @@ class MainActivity : AppCompatActivity() {
         articleLayout.addView(articleImageView)
         articleLayout.addView(articleTextLayout)
         contents.addView(articleLayout)
+        articleLayout.setOnClickListener{
+            val intent = Intent(this, ArticleViewActivity::class.java)
+            intent.putExtra("article", article)
+            startActivity(intent)
+        }
     }
 
     private fun showError(error: Any?) {
@@ -110,15 +116,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun dp(dp: Int) = (dp * resources.displayMetrics.density).toInt()
 
-    private fun formatTime(isoFormatted: String): String {
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-        val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm")
-        val output = formatter.format(parser.parse(isoFormatted))
-        return output
-    }
-
     override fun onPause() {
         super.onPause()
         disposable?.dispose()
+    }
+
+    companion object {
+        fun formatDateTime(isoFormatted: String): String {
+            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+            val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm")
+            val output = formatter.format(parser.parse(isoFormatted))
+            return output
+        }
     }
 }

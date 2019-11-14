@@ -3,4 +3,5 @@
     <string name="hint_search_string">Enter Search Text</string>
     <string name="search_string">Trump</string>
     <string name="button_search">Search</string>
+    <string name="button_read_online">Read full article online</string>
 </resources>
