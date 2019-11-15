@@ -6,13 +6,14 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_article_view.*
 import android.content.Intent
 import android.net.Uri
+import com.example.newsapp.MainActivity.Companion.ARTICLE
 
 class ArticleViewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_article_view)
-        val article = intent.getSerializableExtra("article") as Model.Article
+        val article = intent.getSerializableExtra(ARTICLE) as Model.Article
 
         try {
             Picasso.with(this)

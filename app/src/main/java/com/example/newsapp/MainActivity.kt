@@ -18,8 +18,23 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import androidx.core.view.setMargins
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        const val ARTICLE = "article"
+
+        fun formatDateTime(isoFormatted: String): String {
+            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
+            val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm", Locale.ENGLISH)
+            return try {
+                formatter.format(parser.parse(isoFormatted))
+            } catch (e: Exception) {
+                isoFormatted
+            }
+        }
+    }
 
     private var disposable: Disposable? = null
 
@@ -34,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         loadContents()
         swipe.setOnRefreshListener {
             loadContents()
-            swipe.setRefreshing(false)
+            swipe.isRefreshing = false
         }
     }
 
@@ -45,8 +60,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun beginSearch(searchstring: String) {
+        val from = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
+        val sortBy = "publishedAt"
+        val apiKey = "64e9fccefc4e42808fd3035c23e8a490"
+
         disposable = newsApiServe
-            .hitCountCheck(searchstring, "2019-10-14", "publishedAt", "64e9fccefc4e42808fd3035c23e8a490")
+            .hitCountCheck(searchstring, from, sortBy, apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
@@ -65,13 +84,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun displayArticle(article: Model.Article) {
+        val paddingSize = 10
+        val marginSize = 3
+        val imageWidth = 150
 
         val articleImageView = ImageView(this)
 
         try {
             Picasso.with(this)
                 .load(article.urlToImage ?: "")
-                .resize(dp(150), 0)
+                .resize(dp(imageWidth), 0)
                 .error(R.drawable.no_image_available)
                 .into(articleImageView)
         } catch (e: Exception) {
@@ -88,7 +110,7 @@ class MainActivity : AppCompatActivity() {
 
         val articleTextLayout = LinearLayout(this)
         articleTextLayout.orientation = LinearLayout.VERTICAL
-        articleTextLayout.setPadding(dp(10), 0, 0, 0)
+        articleTextLayout.setPadding(dp(paddingSize), 0, 0, 0)
 
         articleTextLayout.addView(articleTitleView)
         articleTextLayout.addView(articleDateView)
@@ -97,13 +119,13 @@ class MainActivity : AppCompatActivity() {
         val articleLayout = LinearLayout(this)
         articleLayout.orientation = LinearLayout.HORIZONTAL
         articleLayout.setBackgroundResource(R.drawable.rounded_corner)
-        articleLayout.setPadding(dp(10))
+        articleLayout.setPadding(dp(paddingSize))
 
         val articleLayoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         )
-        articleLayoutParams.setMargins(dp(3))
+        articleLayoutParams.setMargins(dp(marginSize))
         articleLayout.setLayoutParams(articleLayoutParams)
 
         articleLayout.addView(articleImageView)
@@ -111,7 +133,7 @@ class MainActivity : AppCompatActivity() {
         contents.addView(articleLayout)
         articleLayout.setOnClickListener{
             val intent = Intent(this, ArticleViewActivity::class.java)
-            intent.putExtra("article", article)
+            intent.putExtra(ARTICLE, article)
             startActivity(intent)
         }
     }
@@ -125,14 +147,5 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         disposable?.dispose()
-    }
-
-    companion object {
-        fun formatDateTime(isoFormatted: String): String {
-            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-            val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm")
-            val output = formatter.format(parser.parse(isoFormatted))
-            return output
-        }
     }
 }
