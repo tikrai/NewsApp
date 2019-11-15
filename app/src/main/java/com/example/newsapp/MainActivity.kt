@@ -31,10 +31,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        btn_search.setOnClickListener {
-            if (edit_search.text.toString().isNotEmpty()) {
-                beginSearch(edit_search.text.toString())
-            }
+        loadContents()
+        swipe.setOnRefreshListener {
+            loadContents()
+            swipe.setRefreshing(false)
+        }
+    }
+
+    private fun loadContents() {
+        if (edit_search.text.toString().isNotEmpty()) {
+            beginSearch(edit_search.text.toString())
         }
     }
 
