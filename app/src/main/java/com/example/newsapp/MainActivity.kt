@@ -2,7 +2,6 @@ package com.example.newsapp
 
 import android.content.Intent
 import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Gravity.CENTER
 import android.view.ViewGroup
@@ -10,14 +9,15 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.setMargins
 import androidx.core.view.setPadding
 import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.include_list.*
 import java.text.SimpleDateFormat
-import androidx.core.view.setMargins
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
