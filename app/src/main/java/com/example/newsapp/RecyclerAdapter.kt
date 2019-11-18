@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.newsapp.MainActivity.Companion.dp
+import com.example.newsapp.MainActivity.Companion.formatDateTime
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.news_list_item.view.*
 
@@ -42,7 +43,7 @@ class RecyclerAdapter (
             }
 
             itemView.listTitleView.text = article.title
-            itemView.listDateView.text = article.publishedAt
+            itemView.listDateView.text = formatDateTime(article.publishedAt)
             itemView.setOnClickListener{ listener.onItemClick(article) }
 
 // TODO check maybe glide can do this better
