@@ -1,29 +1,23 @@
 package com.example.newsapp
 
 import android.content.Intent
-import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Gravity.CENTER
-import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
-import androidx.core.view.setPadding
-import com.squareup.picasso.Picasso
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.include_list.*
 import java.text.SimpleDateFormat
-import androidx.core.view.setMargins
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
 
     companion object {
         const val ARTICLE = "article"
+        var density = 1f
 
         fun formatDateTime(isoFormatted: String): String {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
@@ -34,118 +28,71 @@ class MainActivity : AppCompatActivity() {
                 isoFormatted
             }
         }
+
+        fun dp(dp: Int) = (dp * density).toInt()
     }
 
-    private var disposable: Disposable? = null
+    private lateinit var recyclerAdapter: RecyclerAdapter
+    private lateinit var disposable: CompositeDisposable
 
     private val newsApiServe by lazy {
         NewsApiService.create()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        density = resources.displayMetrics.density
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        loadContents()
+        initRecyclerView()
+        loadData()
+
         swipe.setOnRefreshListener {
-            loadContents()
-            swipe.isRefreshing = false
+            loadData()
         }
     }
 
-    private fun loadContents() {
-        if (edit_search.text.toString().isNotEmpty()) {
-            beginSearch(edit_search.text.toString())
-        }
+    private fun initRecyclerView() {
+        val layoutManager : RecyclerView.LayoutManager = LinearLayoutManager(this)
+        recycler_view.layoutManager = layoutManager
     }
 
-    private fun beginSearch(searchstring: String) {
+    private fun loadData() {
+        val searchString = "Trump" //todo replace with customizable string
         val from = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).format(Date())
         val sortBy = "publishedAt"
         val apiKey = "64e9fccefc4e42808fd3035c23e8a490"
 
-        disposable = newsApiServe
-            .hitCountCheck(searchstring, from, sortBy, apiKey)
+        disposable = CompositeDisposable()
+        disposable.add(newsApiServe
+            .getData(searchString, from, sortBy, apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                { result -> showResult(result) },
+                { result -> handleResponse(result) },
                 { error -> showError(error.message) }
             )
-    }
-
-    private fun showResult(result: Model.Result) {
-        txt_search_result.text = "Total results ${result.totalResults}"
-
-        contents.removeAllViews()
-        result.articles.forEach {
-            displayArticle(it)
-        }
-    }
-
-    private fun displayArticle(article: Model.Article) {
-        val paddingSize = 10
-        val marginSize = 3
-        val imageWidth = 150
-
-        val articleImageView = ImageView(this)
-
-        try {
-            Picasso.with(this)
-                .load(article.urlToImage ?: "")
-                .resize(dp(imageWidth), 0)
-                .error(R.drawable.no_image_available)
-                .into(articleImageView)
-        } catch (e: Exception) {
-            articleImageView.setBackgroundResource(R.drawable.no_image_available)
-        }
-
-        val articleTitleView = TextView(this)
-        articleTitleView.setTextColor(Color.BLACK)
-        articleTitleView.text = article.title
-
-        val articleDateView = TextView(this)
-        articleDateView.gravity = CENTER
-        articleDateView.text = formatDateTime(article.publishedAt)
-
-        val articleTextLayout = LinearLayout(this)
-        articleTextLayout.orientation = LinearLayout.VERTICAL
-        articleTextLayout.setPadding(dp(paddingSize), 0, 0, 0)
-
-        articleTextLayout.addView(articleTitleView)
-        articleTextLayout.addView(articleDateView)
-        articleDateView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-
-        val articleLayout = LinearLayout(this)
-        articleLayout.orientation = LinearLayout.HORIZONTAL
-        articleLayout.setBackgroundResource(R.drawable.rounded_corner)
-        articleLayout.setPadding(dp(paddingSize))
-
-        val articleLayoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
         )
-        articleLayoutParams.setMargins(dp(marginSize))
-        articleLayout.setLayoutParams(articleLayoutParams)
+    }
 
-        articleLayout.addView(articleImageView)
-        articleLayout.addView(articleTextLayout)
-        contents.addView(articleLayout)
-        articleLayout.setOnClickListener{
-            val intent = Intent(this, ArticleViewActivity::class.java)
-            intent.putExtra(ARTICLE, article)
-            startActivity(intent)
-        }
+    private fun handleResponse(result: Model.Result) {
+        recyclerAdapter = RecyclerAdapter(result.articles, this)
+        recycler_view.adapter = recyclerAdapter
+        swipe.isRefreshing = false
     }
 
     private fun showError(error: Any?) {
         Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show()
     }
 
-    private fun dp(dp: Int) = (dp * resources.displayMetrics.density).toInt()
-
     override fun onPause() {
         super.onPause()
-        disposable?.dispose()
+        disposable.dispose()
+    }
+
+    override fun onItemClick(article: Model.Article) {
+        val intent = Intent(this, ArticleViewActivity::class.java)
+        intent.putExtra(ARTICLE, article)
+        startActivity(intent)
     }
 }

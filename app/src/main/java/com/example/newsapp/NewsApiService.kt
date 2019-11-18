@@ -10,7 +10,7 @@ import retrofit2.http.Query
 interface NewsApiService {
 
     @GET("everything")
-    fun hitCountCheck(
+    fun getData(
         @Query("q") q: String,
         @Query("from") from: String,
         @Query("sortBy") sortBy: String,

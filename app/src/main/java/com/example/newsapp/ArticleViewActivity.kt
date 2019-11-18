@@ -13,6 +13,10 @@ class ArticleViewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_article_view)
+
+        setSupportActionBar(toolbar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+
         val article = intent.getSerializableExtra(ARTICLE) as Model.Article
 
         try {
