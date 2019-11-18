@@ -25,7 +25,9 @@ class RecyclerAdapter (
     override fun getItemCount(): Int = items.count()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.news_list_item, parent, false)
+        val view = LayoutInflater
+            .from(parent.context)
+            .inflate(R.layout.news_list_item, parent, false)
         return ViewHolder(view)
     }
 

@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     companion object {
         const val ARTICLE = "article"
         const val SEARCH_STRING = "searchString"
+        const val ITEMS_PER_PAGE = 10
 
         var density = 1f
 
@@ -43,8 +44,13 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     private lateinit var disposable: CompositeDisposable
     private lateinit var settings: SharedPreferences
     private lateinit var searchString: String
+    private var pagesLoaded = 0
+    private var isLoading = false
 
-    private val newsApiServe by lazy {
+    private var articleList = ArrayList<Model.Article>()
+    private var totalResults = 0
+
+    private val newsApiService by lazy {
         NewsApiService.create()
     }
 
@@ -57,27 +63,27 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
         searchString = settings.getString(SEARCH_STRING, getString(R.string.defaultSearchString)) ?: ""
 
         setSupportActionBar(toolbar)
-
         initRecyclerView()
-        loadData(searchString)
-
+        loadData()
         swipe.setOnRefreshListener {
-            loadData(searchString)
+            loadData()
         }
+        initScrollListener()
     }
 
     private fun initRecyclerView() {
         val layoutManager : RecyclerView.LayoutManager = LinearLayoutManager(this)
-        recycler_view.layoutManager = layoutManager
+        recyclerView.layoutManager = layoutManager
+        recyclerAdapter = RecyclerAdapter(articleList, this)
+        recyclerView.adapter = recyclerAdapter
     }
 
-    private fun loadData(searchString: String) {
-        val sortBy = getString(R.string.publishedAt)
+    private fun appendData() {
+        Toast.makeText(this, "loading page ${pagesLoaded + 1}", Toast.LENGTH_SHORT).show() //todo remove debug line
         val apiKey = getString(R.string.apiKey)
-
         disposable = CompositeDisposable()
-        disposable.add(newsApiServe
-            .getData(searchString, sortBy, apiKey)
+        disposable.add(newsApiService
+            .getData(searchString, ITEMS_PER_PAGE, pagesLoaded + 1, apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
@@ -87,14 +93,38 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
         )
     }
 
+    private fun loadData() {
+        articleList.clear()
+        pagesLoaded = 0
+        appendData()
+    }
+
     private fun handleResponse(result: Model.Result) {
-        recyclerAdapter = RecyclerAdapter(result.articles, this)
-        recycler_view.adapter = recyclerAdapter
+        pagesLoaded++
+        articleList.addAll(result.articles)
+        totalResults = result.totalResults
+        recyclerAdapter.notifyDataSetChanged()
         swipe.isRefreshing = false
+        isLoading = false
     }
 
     private fun showError(error: Any?) {
         Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun initScrollListener() {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val linearLayoutManager = recyclerView.layoutManager as LinearLayoutManager
+                if (!isLoading && totalResults > pagesLoaded * ITEMS_PER_PAGE) {
+                    if (linearLayoutManager.findLastCompletelyVisibleItemPosition() == articleList.size - 1) {
+                        isLoading = true
+                        appendData()
+                    }
+                }
+            }
+        })
     }
 
     override fun onPause() {
@@ -121,7 +151,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 settings.edit().putString(SEARCH_STRING, query).apply()
                 searchString = query
-                loadData(query)
+                loadData()
                 return false
             }
 
