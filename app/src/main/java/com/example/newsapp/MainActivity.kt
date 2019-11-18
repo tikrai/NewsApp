@@ -72,14 +72,12 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     }
 
     private fun loadData(searchString: String) {
-        val datePattern = getString(R.string.datePattern)
-        val from = SimpleDateFormat(datePattern, Locale.ENGLISH).format(Date())
         val sortBy = getString(R.string.publishedAt)
         val apiKey = getString(R.string.apiKey)
 
         disposable = CompositeDisposable()
         disposable.add(newsApiServe
-            .getData(searchString, from, sortBy, apiKey)
+            .getData(searchString, sortBy, apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
