@@ -1,9 +1,12 @@
 <resources>
     <string name="app_name">NewsApp</string>
-    <string name="hint_search_string">Enter Search Text</string>
-    <string name="search_string">Trump</string>
     <string name="button_read_online">Read full article online</string>
     <string name="title">Title</string>
     <string name="date">Date</string>
     <string name="image">Image</string>
+    <string name="search">Search</string>
+    <string name="apiKey">64e9fccefc4e42808fd3035c23e8a490</string>
+    <string name="publishedAt">publishedAt</string>
+    <string name="datePattern">yyyy-MM-dd</string>
+    <string name="defaultSearchString">Trump</string>
 </resources>
