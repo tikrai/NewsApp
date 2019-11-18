@@ -31,7 +31,8 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
             val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm", Locale.ENGLISH)
             return try {
-                formatter.format(parser.parse(isoFormatted))
+                val parsed = parser.parse(isoFormatted) ?: return isoFormatted
+                formatter.format(parsed)
             } catch (e: Exception) {
                 isoFormatted
             }
