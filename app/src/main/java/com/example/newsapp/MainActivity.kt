@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     }
 
     private fun ensureNoNullElements() {
-        if (!articleList.isEmpty() && articleList[articleList.size - 1] == null) {
+        if (articleList.isNotEmpty() && articleList[articleList.size - 1] == null) {
             articleList.removeAt(articleList.size - 1)
             recyclerAdapter.notifyDataSetChanged()
         }
