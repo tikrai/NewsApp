@@ -10,29 +10,48 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.news_list_item.view.*
 
 class RecyclerAdapter (
-    private val items : List<Model.Article>,
+    private val items : List<Model.Article?>,
     private val listener : Listener
-) : RecyclerView.Adapter<RecyclerAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    private val VIEW_TYPE_ITEM = 0
+    private val VIEW_TYPE_LOADING = 1
 
     interface Listener {
         fun onItemClick(article : Model.Article)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(items[position], listener)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        if (viewType == VIEW_TYPE_ITEM) {
+            val view = LayoutInflater
+                .from(parent.context)
+                .inflate(R.layout.news_list_item, parent, false)
+            return ItemViewHolder(view)
+        }
+        val view = LayoutInflater
+            .from(parent.context)
+            .inflate(R.layout.loading_item, parent, false)
+        return LoadingViewHolder(view)
+     }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (holder is ItemViewHolder) {
+            holder.bind(items[position], listener)
+        }
     }
 
     override fun getItemCount(): Int = items.count()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater
-            .from(parent.context)
-            .inflate(R.layout.news_list_item, parent, false)
-        return ViewHolder(view)
+    override fun getItemViewType(position: Int): Int {
+        if (items[position] == null)
+            return VIEW_TYPE_LOADING
+        return VIEW_TYPE_ITEM
     }
 
-    class ViewHolder(view : View) : RecyclerView.ViewHolder(view) {
-        fun bind(article: Model.Article, listener: Listener) {
+    class ItemViewHolder(view : View) : RecyclerView.ViewHolder(view) {
+        fun bind(article: Model.Article?, listener: Listener) {
+            if (article == null)
+                return
             try {
                 Picasso.with(itemView.context)
                     .load(article.urlToImage)
@@ -47,17 +66,8 @@ class RecyclerAdapter (
             itemView.listTitleView.text = article.title
             itemView.listDateView.text = formatDateTime(article.publishedAt)
             itemView.setOnClickListener{ listener.onItemClick(article) }
-
-// TODO check maybe glide can do this better
-
-//            val requestOptions = RequestOptions()
-//                .placeholder(R.drawable.no_image_available)
-//                .override(150, 0)
-//                .error(R.drawable.no_image_available)
-//            Glide.with(itemView.context)
-//                .applyDefaultRequestOptions(requestOptions)
-//                .load(article.urlToImage)
-//                .into(itemView.listImageView)
         }
     }
+
+    class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 }

@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     private var pagesLoaded = 0
     private var isLoading = false
 
-    private var articleList = ArrayList<Model.Article>()
+    private var articleList = ArrayList<Model.Article?>()
     private var totalResults = 0
 
     private val newsApiService by lazy {
@@ -79,7 +79,6 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     }
 
     private fun appendData() {
-        Toast.makeText(this, "loading page ${pagesLoaded + 1}", Toast.LENGTH_SHORT).show() //todo remove debug line
         val apiKey = getString(R.string.apiKey)
         disposable = CompositeDisposable()
         disposable.add(newsApiService
@@ -95,33 +94,47 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
 
     private fun loadData() {
         articleList.clear()
+        recyclerAdapter.notifyDataSetChanged()
         pagesLoaded = 0
         appendData()
     }
 
     private fun handleResponse(result: Model.Result) {
         pagesLoaded++
+        ensureNoNullElements()
         articleList.addAll(result.articles)
-        totalResults = result.totalResults
         recyclerAdapter.notifyDataSetChanged()
+        totalResults = result.totalResults
         swipe.isRefreshing = false
         isLoading = false
     }
 
+    private fun ensureNoNullElements() {
+        if (!articleList.isEmpty() && articleList[articleList.size - 1] == null) {
+            articleList.removeAt(articleList.size - 1)
+            recyclerAdapter.notifyDataSetChanged()
+        }
+    }
+
     private fun showError(error: Any?) {
         Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show()
+        swipe.isRefreshing = false
+        ensureNoNullElements()
     }
 
     private fun initScrollListener() {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val linearLayoutManager = recyclerView.layoutManager as LinearLayoutManager
-                if (!isLoading && totalResults > pagesLoaded * ITEMS_PER_PAGE) {
-                    if (linearLayoutManager.findLastCompletelyVisibleItemPosition() == articleList.size - 1) {
-                        isLoading = true
-                        appendData()
-                    }
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                if (!isLoading
+                    && totalResults > pagesLoaded * ITEMS_PER_PAGE
+                    && layoutManager.findLastCompletelyVisibleItemPosition() == articleList.size - 1
+                ) {
+                    isLoading = true
+                    articleList.add(null)
+                    recyclerAdapter.notifyDataSetChanged()
+                    appendData()
                 }
             }
         })
