@@ -12,7 +12,8 @@ interface NewsApiService {
     @GET("everything")
     fun getData(
         @Query("q") q: String,
-        @Query("sortBy") sortBy: String,
+        @Query("pageSize") pageSize: Int,
+        @Query("page") page: Int,
         @Query("apiKey") apiKey: String
     ): Observable<Model.Result>
 
