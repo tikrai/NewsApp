@@ -37,8 +37,6 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
                 isoFormatted
             }
         }
-
-        fun dp(dp: Int) = (dp * density).toInt()
     }
 
     private lateinit var recyclerAdapter: RecyclerAdapter

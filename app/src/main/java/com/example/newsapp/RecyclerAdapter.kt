@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.newsapp.MainActivity.Companion.dp
 import com.example.newsapp.MainActivity.Companion.formatDateTime
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.news_list_item.view.*
@@ -67,6 +66,8 @@ class RecyclerAdapter (
             itemView.listDateView.text = formatDateTime(article.publishedAt)
             itemView.setOnClickListener{ listener.onItemClick(article) }
         }
+
+        fun dp(dp: Int) = (dp * MainActivity.density).toInt()
     }
 
     class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
