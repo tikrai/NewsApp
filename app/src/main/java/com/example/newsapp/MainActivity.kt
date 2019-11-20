@@ -31,7 +31,8 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
             val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm", Locale.ENGLISH)
             return try {
-                formatter.format(parser.parse(isoFormatted))
+                val parsed = parser.parse(isoFormatted) ?: return isoFormatted
+                formatter.format(parsed)
             } catch (e: Exception) {
                 isoFormatted
             }
@@ -110,7 +111,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     }
 
     private fun ensureNoNullElements() {
-        if (!articleList.isEmpty() && articleList[articleList.size - 1] == null) {
+        if (articleList.isNotEmpty() && articleList[articleList.size - 1] == null) {
             articleList.removeAt(articleList.size - 1)
             recyclerAdapter.notifyDataSetChanged()
         }

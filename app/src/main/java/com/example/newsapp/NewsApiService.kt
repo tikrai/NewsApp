@@ -18,11 +18,13 @@ interface NewsApiService {
     ): Observable<Model.Result>
 
     companion object {
-        fun create(): NewsApiService = Retrofit.Builder()
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("https://newsapi.org/v2/")
-                .build()
-                .create(NewsApiService::class.java)
+        private const val BASE_URL = "https://newsapi.org/v2/"
+
+        fun create(baseUrl: String = BASE_URL): NewsApiService = Retrofit.Builder()
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(baseUrl)
+            .build()
+            .create(NewsApiService::class.java)
     }
 }
