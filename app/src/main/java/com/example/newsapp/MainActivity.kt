@@ -17,10 +17,6 @@ import java.util.*
 
 class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.Listener {
     companion object {
-        const val ARTICLE = "article"
-        const val SEARCH_STRING = "searchString"
-        const val ITEMS_PER_PAGE = 10
-
         fun formatDateTime(isoFormatted: String): String {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
             val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm", Locale.ENGLISH)
@@ -46,17 +42,25 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
         setContentView(R.layout.activity_main)
 
         settings = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        searchString = settings.getString(SEARCH_STRING, getString(R.string.defaultSearchString)) ?: ""
+        searchString = settings.getString(
+            resources.getString(R.string.search_string_key),
+            resources.getString(R.string.search_string_default)
+        ) ?: ""
 
         setSupportActionBar(toolbar)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = recyclerAdapter
 
-        val apiKey = getString(R.string.apiKey)
-        dataSet = DataSet(this, newsApiService, recyclerAdapter, apiKey, searchString)
-        dataSet.loadFirstPage()
+        dataSet = DataSet(
+            this,
+            newsApiService,
+            recyclerAdapter,
+            resources.getInteger(R.integer.articles_per_page),
+            resources.getString(R.string.api_key)
+        )
+        dataSet.loadFirstPage(searchString)
         swipe.setOnRefreshListener {
-            dataSet.loadFirstPage()
+            dataSet.loadFirstPage(searchString)
         }
         initScrollListener()
     }
@@ -71,7 +75,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
                     && layoutManager.findLastCompletelyVisibleItemPosition() == dataSet.last()
                 ) {
                     isLoading = true
-                    dataSet.loadNextPage()
+                    dataSet.loadNextPage(searchString)
                 }
             }
         })
@@ -99,9 +103,11 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-                settings.edit().putString(SEARCH_STRING, query).apply()
+                settings.edit()
+                    .putString(resources.getString(R.string.search_string_key), query)
+                    .apply()
                 searchString = query
-                dataSet.loadFirstPage()
+                dataSet.loadFirstPage(searchString)
                 return false
             }
 
@@ -123,7 +129,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
 
     override fun onItemClick(article: Model.Article) {
         val intent = Intent(this, ArticleViewActivity::class.java)
-        intent.putExtra(ARTICLE, article)
+        intent.putExtra(resources.getString(R.string.intent_extra_key_article), article)
         startActivity(intent)
     }
 }

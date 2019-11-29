@@ -8,8 +8,8 @@ class DataSet(
     private val listener : Listener,
     private val newsApiService: NewsApiService,
     private val recyclerAdapter: RecyclerAdapter,
-    private val apiKey: String,
-    private val searchString: String
+    private val articlesPerPage: Int,
+    private val apiKey: String
 ) {
     private var contents: ArrayList<Model.Article?> = ArrayList()
     private var pagesLoaded = 0
@@ -22,20 +22,26 @@ class DataSet(
         fun onError(errorMessage: String?)
     }
 
-    fun loadFirstPage() {
-        loadPage(1)
+    fun loadFirstPage(searchString: String) {
+        loadPage(searchString, 1)
     }
 
-    fun loadNextPage() {
+    fun loadNextPage(searchString: String) {
         contents.add(null)
         recyclerAdapter.notifyDataSetChanged()
-        loadPage(pagesLoaded + 1)
+        loadPage(searchString, pagesLoaded + 1)
     }
 
-    private fun loadPage(pageToLoad: Int) {
+    fun isFullyLoaded(): Boolean {
+        return totalArticles <= contents.size
+    }
+
+    fun last() = contents.size - 1
+
+    private fun loadPage(searchString: String, pageToLoad: Int) {
         disposable = CompositeDisposable()
         disposable.add(newsApiService
-            .getData(searchString, MainActivity.ITEMS_PER_PAGE, pageToLoad, apiKey)
+            .getData(searchString, articlesPerPage, pageToLoad, apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
@@ -65,12 +71,6 @@ class DataSet(
         recyclerAdapter.notifyDataSetChanged()
         listener.onError(error.message)
     }
-
-    fun isFullyLoaded(): Boolean {
-        return totalArticles <= contents.size
-    }
-
-    fun last() = contents.size - 1
 
     private fun ensureNoNullElements() {
         if (contents.isNotEmpty() && contents[contents.size - 1] == null) {

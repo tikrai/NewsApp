@@ -6,7 +6,6 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_article_view.*
 import android.content.Intent
 import android.net.Uri
-import com.example.newsapp.MainActivity.Companion.ARTICLE
 
 class ArticleViewActivity : AppCompatActivity() {
 
@@ -17,7 +16,8 @@ class ArticleViewActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        val article = intent.getSerializableExtra(ARTICLE) as Model.Article
+        val article_key = resources.getString(R.string.intent_extra_key_article)
+        val article = intent.getSerializableExtra(article_key) as Model.Article
 
         try {
             Picasso.with(this)
