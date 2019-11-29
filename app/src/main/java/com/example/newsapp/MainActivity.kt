@@ -21,8 +21,6 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
         const val SEARCH_STRING = "searchString"
         const val ITEMS_PER_PAGE = 10
 
-        var density = 1f
-
         fun formatDateTime(isoFormatted: String): String {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
             val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm", Locale.ENGLISH)
@@ -47,7 +45,6 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        density = resources.displayMetrics.density
         settings = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
         searchString = settings.getString(SEARCH_STRING, getString(R.string.defaultSearchString)) ?: ""
 

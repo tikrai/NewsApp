@@ -55,10 +55,11 @@ class RecyclerAdapter (
         fun bind(article: Model.Article?, listener: Listener) {
             if (article == null)
                 return
+            val imageWidth = itemView.context.resources.getDimensionPixelSize(R.dimen.image_width)
             try {
                 Picasso.with(itemView.context)
                     .load(article.urlToImage)
-                    .resize(dp(150), 0)
+                    .resize(imageWidth, 0)
                     .error(R.drawable.no_image_available)
                     .placeholder(R.drawable.no_image_available)
                     .into(itemView.listImageView)
@@ -70,8 +71,6 @@ class RecyclerAdapter (
             itemView.listDateView.text = formatDateTime(article.publishedAt)
             itemView.setOnClickListener{ listener.onItemClick(article) }
         }
-
-        fun dp(dp: Int) = (dp * MainActivity.density).toInt()
     }
 
     class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
