@@ -1,25 +1,21 @@
 package com.example.newsapp
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.include_list.*
 import java.text.SimpleDateFormat
 import java.util.*
-import android.content.Context
-import android.content.SharedPreferences
-import android.view.MenuItem
 
-class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
-
+class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.Listener {
     companion object {
         const val ARTICLE = "article"
         const val SEARCH_STRING = "searchString"
@@ -40,15 +36,12 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     }
 
     private lateinit var dataSet: DataSet
-    private lateinit var recyclerAdapter: RecyclerAdapter
-    private lateinit var disposable: CompositeDisposable
     private lateinit var settings: SharedPreferences
     private lateinit var searchString: String
     private var isLoading = false
 
-    private val newsApiService by lazy {
-        NewsApiService.create()
-    }
+    private val newsApiService by lazy { NewsApiService.create() }
+    private val recyclerAdapter by lazy { RecyclerAdapter(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,50 +52,16 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
         searchString = settings.getString(SEARCH_STRING, getString(R.string.defaultSearchString)) ?: ""
 
         setSupportActionBar(toolbar)
-        initRecyclerView()
-        dataSet = DataSet(recyclerAdapter)
-        loadPage(1)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = recyclerAdapter
+
+        val apiKey = getString(R.string.apiKey)
+        dataSet = DataSet(this, newsApiService, recyclerAdapter, apiKey, searchString)
+        dataSet.loadFirstPage()
         swipe.setOnRefreshListener {
-            loadPage(1)
+            dataSet.loadFirstPage()
         }
         initScrollListener()
-    }
-
-    private fun initRecyclerView() {
-        val layoutManager : RecyclerView.LayoutManager = LinearLayoutManager(this)
-        recyclerView.layoutManager = layoutManager
-        recyclerAdapter = RecyclerAdapter(this)
-        recyclerView.adapter = recyclerAdapter
-    }
-
-    private fun loadPage(pageToLoad: Int) {
-        val apiKey = getString(R.string.apiKey)
-        disposable = CompositeDisposable()
-        disposable.add(newsApiService
-            .getData(searchString, ITEMS_PER_PAGE, pageToLoad, apiKey)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { result -> handleResponse(result, pageToLoad) },
-                { error -> showError(error.message) }
-            )
-        )
-    }
-
-    private fun handleResponse(result: Model.Result, pageToLoad: Int) {
-        if (pageToLoad == 1) {
-            dataSet.init(result)
-        } else {
-            dataSet.add(result)
-        }
-        swipe.isRefreshing = false
-        isLoading = false
-    }
-
-    private fun showError(error: Any?) {
-        Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show()
-        swipe.isRefreshing = false
-        dataSet.removeProgressBar()
     }
 
     private fun initScrollListener() {
@@ -112,11 +71,10 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 if (!isLoading
                     && !dataSet.isFullyLoaded()
-                    && layoutManager.findLastCompletelyVisibleItemPosition() == dataSet.size() - 1
+                    && layoutManager.findLastCompletelyVisibleItemPosition() == dataSet.last()
                 ) {
                     isLoading = true
-                    dataSet.addProgressBar()
-                    loadPage(dataSet.nextPage())
+                    dataSet.loadNextPage()
                 }
             }
         })
@@ -124,7 +82,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
 
     override fun onPause() {
         super.onPause()
-        disposable.dispose()
+        dataSet.onPause()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -146,7 +104,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 settings.edit().putString(SEARCH_STRING, query).apply()
                 searchString = query
-                loadPage(1)
+                dataSet.loadFirstPage()
                 return false
             }
 
@@ -154,6 +112,16 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
         })
 
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onDataLoaded() {
+        swipe.isRefreshing = false
+        isLoading = false
+    }
+
+    override fun onError(errorMessage: String?) {
+        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        swipe.isRefreshing = false
     }
 
     override fun onItemClick(article: Model.Article) {
