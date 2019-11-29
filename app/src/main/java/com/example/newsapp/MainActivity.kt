@@ -39,15 +39,12 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
         }
     }
 
+    private lateinit var dataSet: DataSet
     private lateinit var recyclerAdapter: RecyclerAdapter
     private lateinit var disposable: CompositeDisposable
     private lateinit var settings: SharedPreferences
     private lateinit var searchString: String
-    private var pagesLoaded = 0
     private var isLoading = false
-
-    private var articleList = ArrayList<Model.Article?>()
-    private var totalResults = 0
 
     private val newsApiService by lazy {
         NewsApiService.create()
@@ -63,9 +60,10 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
 
         setSupportActionBar(toolbar)
         initRecyclerView()
-        loadData()
+        dataSet = DataSet(recyclerAdapter)
+        loadPage(1)
         swipe.setOnRefreshListener {
-            loadData()
+            loadPage(1)
         }
         initScrollListener()
     }
@@ -73,52 +71,38 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
     private fun initRecyclerView() {
         val layoutManager : RecyclerView.LayoutManager = LinearLayoutManager(this)
         recyclerView.layoutManager = layoutManager
-        recyclerAdapter = RecyclerAdapter(articleList, this)
+        recyclerAdapter = RecyclerAdapter(this)
         recyclerView.adapter = recyclerAdapter
     }
 
-    private fun appendData() {
+    private fun loadPage(pageToLoad: Int) {
         val apiKey = getString(R.string.apiKey)
         disposable = CompositeDisposable()
         disposable.add(newsApiService
-            .getData(searchString, ITEMS_PER_PAGE, pagesLoaded + 1, apiKey)
+            .getData(searchString, ITEMS_PER_PAGE, pageToLoad, apiKey)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                { result -> handleResponse(result) },
+                { result -> handleResponse(result, pageToLoad) },
                 { error -> showError(error.message) }
             )
         )
     }
 
-    private fun loadData() {
-        articleList.clear()
-        recyclerAdapter.notifyDataSetChanged()
-        pagesLoaded = 0
-        appendData()
-    }
-
-    private fun handleResponse(result: Model.Result) {
-        pagesLoaded++
-        ensureNoNullElements()
-        articleList.addAll(result.articles)
-        recyclerAdapter.notifyDataSetChanged()
-        totalResults = result.totalResults
+    private fun handleResponse(result: Model.Result, pageToLoad: Int) {
+        if (pageToLoad == 1) {
+            dataSet.init(result)
+        } else {
+            dataSet.add(result)
+        }
         swipe.isRefreshing = false
         isLoading = false
-    }
-
-    private fun ensureNoNullElements() {
-        if (articleList.isNotEmpty() && articleList[articleList.size - 1] == null) {
-            articleList.removeAt(articleList.size - 1)
-            recyclerAdapter.notifyDataSetChanged()
-        }
     }
 
     private fun showError(error: Any?) {
         Toast.makeText(this, error.toString(), Toast.LENGTH_SHORT).show()
         swipe.isRefreshing = false
-        ensureNoNullElements()
+        dataSet.removeProgressBar()
     }
 
     private fun initScrollListener() {
@@ -127,13 +111,12 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 if (!isLoading
-                    && totalResults > pagesLoaded * ITEMS_PER_PAGE
-                    && layoutManager.findLastCompletelyVisibleItemPosition() == articleList.size - 1
+                    && !dataSet.isFullyLoaded()
+                    && layoutManager.findLastCompletelyVisibleItemPosition() == dataSet.size() - 1
                 ) {
                     isLoading = true
-                    articleList.add(null)
-                    recyclerAdapter.notifyDataSetChanged()
-                    appendData()
+                    dataSet.addProgressBar()
+                    loadPage(dataSet.nextPage())
                 }
             }
         })
@@ -163,7 +146,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 settings.edit().putString(SEARCH_STRING, query).apply()
                 searchString = query
-                loadData()
+                loadPage(1)
                 return false
             }
 

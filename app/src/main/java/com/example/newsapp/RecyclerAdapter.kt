@@ -9,15 +9,19 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.news_list_item.view.*
 
 class RecyclerAdapter (
-    private val items : List<Model.Article?>,
     private val listener : Listener
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    private var items : List<Model.Article?> = ArrayList();
     private val VIEW_TYPE_ITEM = 0
     private val VIEW_TYPE_LOADING = 1
 
     interface Listener {
         fun onItemClick(article : Model.Article)
+    }
+
+    fun setContents(items : List<Model.Article?>) {
+        this.items = items;
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
