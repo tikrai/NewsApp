@@ -1,5 +1,6 @@
-package com.example.newsapp
+package com.example.newsapp.main
 
+import com.example.newsapp.models.NewsApiResponse
 import com.google.gson.JsonSyntaxException
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -56,7 +57,7 @@ class NewsApiServiceTest {
             .getData("x", 1, 1, "x")
             .blockingFirst()
 
-        val expected = Model.Result()
+        val expected = NewsApiResponse.Result()
         Assert.assertEquals(expected, actual)
     }
 

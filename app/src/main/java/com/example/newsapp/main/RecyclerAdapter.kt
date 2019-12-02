@@ -1,10 +1,12 @@
-package com.example.newsapp
+package com.example.newsapp.main
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.newsapp.MainActivity.Companion.formatDateTime
+import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.R
+import com.example.newsapp.Utils.Companion.formatDateTime
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.news_list_item.view.*
 
@@ -12,16 +14,16 @@ class RecyclerAdapter (
     private val listener : Listener
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var items : List<Model.Article?> = ArrayList();
+    private var items : List<NewsApiResponse.Article?> = ArrayList()
     private val VIEW_TYPE_ITEM = 0
     private val VIEW_TYPE_LOADING = 1
 
     interface Listener {
-        fun onItemClick(article : Model.Article)
+        fun onItemClick(article : NewsApiResponse.Article)
     }
 
-    fun setContents(items : List<Model.Article?>) {
-        this.items = items;
+    fun setContents(items : List<NewsApiResponse.Article?>) {
+        this.items = items
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -52,7 +54,7 @@ class RecyclerAdapter (
     }
 
     class ItemViewHolder(view : View) : RecyclerView.ViewHolder(view) {
-        fun bind(article: Model.Article?, listener: Listener) {
+        fun bind(article: NewsApiResponse.Article?, listener: Listener) {
             if (article == null)
                 return
             val imageWidth = itemView.context.resources.getDimensionPixelSize(R.dimen.image_width)

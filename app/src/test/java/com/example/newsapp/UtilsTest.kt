@@ -1,10 +1,10 @@
 package com.example.newsapp
 
-import com.example.newsapp.MainActivity.Companion.formatDateTime
+import com.example.newsapp.Utils.Companion.formatDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class MainActivityTest {
+class UtilsTest {
     @Test
     fun shouldReFormatDateTimeCorrectly() {
         assertEquals("2019-November-18 14:50", formatDateTime("2019-11-18T14:50:00Z"))

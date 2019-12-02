@@ -1,4 +1,4 @@
-package com.example.newsapp
+package com.example.newsapp.main
 
 import android.content.Context
 import android.content.Intent
@@ -11,23 +11,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.newsapp.*
+import com.example.newsapp.article.ArticleViewActivity
+import com.example.newsapp.models.NewsApiResponse
 import kotlinx.android.synthetic.main.include_list.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.Listener {
-    companion object {
-        fun formatDateTime(isoFormatted: String): String {
-            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH)
-            val formatter = SimpleDateFormat("yyyy-MMMM-dd HH:mm", Locale.ENGLISH)
-            return try {
-                val parsed = parser.parse(isoFormatted) ?: return isoFormatted
-                formatter.format(parsed)
-            } catch (e: Exception) {
-                isoFormatted
-            }
-        }
-    }
 
     private lateinit var dataSet: DataSet
     private lateinit var settings: SharedPreferences
@@ -127,7 +116,7 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
         swipe.isRefreshing = false
     }
 
-    override fun onItemClick(article: Model.Article) {
+    override fun onItemClick(article: NewsApiResponse.Article) {
         val intent = Intent(this, ArticleViewActivity::class.java)
         intent.putExtra(resources.getString(R.string.intent_extra_key_article), article)
         startActivity(intent)

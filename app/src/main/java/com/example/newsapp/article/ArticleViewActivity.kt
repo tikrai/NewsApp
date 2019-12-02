@@ -1,4 +1,4 @@
-package com.example.newsapp
+package com.example.newsapp.article
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -6,6 +6,9 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_article_view.*
 import android.content.Intent
 import android.net.Uri
+import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.R
+import com.example.newsapp.Utils.Companion.formatDateTime
 
 class ArticleViewActivity : AppCompatActivity() {
 
@@ -17,7 +20,7 @@ class ArticleViewActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         val article_key = resources.getString(R.string.intent_extra_key_article)
-        val article = intent.getSerializableExtra(article_key) as Model.Article
+        val article = intent.getSerializableExtra(article_key) as NewsApiResponse.Article
 
         try {
             Picasso.with(this)
@@ -30,7 +33,7 @@ class ArticleViewActivity : AppCompatActivity() {
         titleView.text = article.title
         descriptionView.text = article.description
         authorView.text = article.author
-        dateView.text = MainActivity.formatDateTime(article.publishedAt)
+        dateView.text = formatDateTime(article.publishedAt)
         button.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(article.url)))
         }

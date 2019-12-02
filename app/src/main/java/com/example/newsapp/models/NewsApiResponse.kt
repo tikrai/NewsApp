@@ -1,8 +1,8 @@
-package com.example.newsapp
+package com.example.newsapp.models
 
 import java.io.Serializable
 
-object Model {
+object NewsApiResponse {
     data class Result(
         val status: String = "ok",
         val totalResults: Int = 1,

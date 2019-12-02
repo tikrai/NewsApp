@@ -1,5 +1,6 @@
-package com.example.newsapp
+package com.example.newsapp.main
 
+import com.example.newsapp.models.NewsApiResponse
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -11,7 +12,7 @@ class DataSet(
     private val articlesPerPage: Int,
     private val apiKey: String
 ) {
-    private var contents: ArrayList<Model.Article?> = ArrayList()
+    private var contents: ArrayList<NewsApiResponse.Article?> = ArrayList()
     private var pagesLoaded = 0
     private var totalArticles = 0
 
@@ -51,7 +52,7 @@ class DataSet(
         )
     }
 
-    private fun handleResponse(result: Model.Result, pageToLoad: Int) {
+    private fun handleResponse(result: NewsApiResponse.Result, pageToLoad: Int) {
         if (pageToLoad == 1) {
             contents = ArrayList(result.articles)
             pagesLoaded = 1
