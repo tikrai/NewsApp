@@ -16,15 +16,15 @@ import com.example.newsapp.article.ArticleViewActivity
 import com.example.newsapp.models.NewsApiResponse
 import kotlinx.android.synthetic.main.include_list.*
 
-class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.Listener {
-
-    private lateinit var dataSet: DataSet
+class MainActivity : AppCompatActivity(), MainView {
+    private lateinit var dataInteractor: DataInteractor
     private lateinit var settings: SharedPreferences
     private lateinit var searchString: String
     private var isLoading = false
 
     private val newsApiService by lazy { NewsApiService.create() }
-    private val recyclerAdapter by lazy { RecyclerAdapter(this) }
+    private lateinit var presenter: MainPresenter
+    private lateinit var mainAdapter: MainAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,43 +36,74 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
             resources.getString(R.string.search_string_default)
         ) ?: ""
 
+        initMainView(searchString)
         setSupportActionBar(toolbar)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = recyclerAdapter
-
-        dataSet = DataSet(
-            this,
-            newsApiService,
-            recyclerAdapter,
-            resources.getInteger(R.integer.articles_per_page),
-            resources.getString(R.string.api_key)
-        )
-        dataSet.loadFirstPage(searchString)
         swipe.setOnRefreshListener {
-            dataSet.loadFirstPage(searchString)
+            presenter.onResume()
         }
         initScrollListener()
     }
 
+    private fun initMainView(searchString: String) {
+        dataInteractor = DataInteractor(
+            newsApiService,
+            resources.getInteger(R.integer.articles_per_page),
+            resources.getString(R.string.api_key),
+            searchString
+        )
+        presenter = MainPresenter(this, dataInteractor)
+        mainAdapter = MainAdapter(presenter::onItemClicked)
+        listView.adapter = mainAdapter
+    }
+
+    override fun onResume() {
+        super.onResume()
+        presenter.onResume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        presenter.onDestroy()
+    }
+
+    override fun showProgress() {
+        swipe.isRefreshing = true
+    }
+
+    override fun hideProgress() {
+        swipe.isRefreshing = false
+    }
+
+    override fun setItems(items: List<NewsApiResponse.Article?>) {
+        mainAdapter.setItems(items)
+        isLoading = false
+    }
+
+    override fun showError(errorMessage: String?) {
+        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        swipe.isRefreshing = false
+    }
+
+    override fun loadArticle(article: NewsApiResponse.Article) {
+        val intent = Intent(this, ArticleViewActivity::class.java)
+        intent.putExtra(resources.getString(R.string.intent_extra_key_article), article)
+        startActivity(intent)
+    }
+
     private fun initScrollListener() {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        listView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 if (!isLoading
-                    && !dataSet.isFullyLoaded()
-                    && layoutManager.findLastCompletelyVisibleItemPosition() == dataSet.last()
+                    && !dataInteractor.isFullyLoaded()
+                    && layoutManager.findLastCompletelyVisibleItemPosition() == dataInteractor.last()
                 ) {
                     isLoading = true
-                    dataSet.loadNextPage(searchString)
+                    presenter.onScrollToBottom()
                 }
             }
         })
-    }
-
-    override fun onPause() {
-        super.onPause()
-        dataSet.onPause()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -96,7 +127,8 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
                     .putString(resources.getString(R.string.search_string_key), query)
                     .apply()
                 searchString = query
-                dataSet.loadFirstPage(searchString)
+                initMainView(searchString)
+                presenter.onResume()
                 return false
             }
 
@@ -104,21 +136,5 @@ class MainActivity : AppCompatActivity(), RecyclerAdapter.Listener, DataSet.List
         })
 
         return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onDataLoaded() {
-        swipe.isRefreshing = false
-        isLoading = false
-    }
-
-    override fun onError(errorMessage: String?) {
-        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-        swipe.isRefreshing = false
-    }
-
-    override fun onItemClick(article: NewsApiResponse.Article) {
-        val intent = Intent(this, ArticleViewActivity::class.java)
-        intent.putExtra(resources.getString(R.string.intent_extra_key_article), article)
-        startActivity(intent)
     }
 }

@@ -10,20 +10,17 @@ import com.example.newsapp.Utils.Companion.formatDateTime
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.news_list_item.view.*
 
-class RecyclerAdapter (
-    private val listener : Listener
+class MainAdapter (
+    private val listener : (NewsApiResponse.Article) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var items : List<NewsApiResponse.Article?> = ArrayList()
     private val VIEW_TYPE_ITEM = 0
     private val VIEW_TYPE_LOADING = 1
 
-    interface Listener {
-        fun onItemClick(article : NewsApiResponse.Article)
-    }
-
-    fun setContents(items : List<NewsApiResponse.Article?>) {
+    fun setItems(items : List<NewsApiResponse.Article?>) {
         this.items = items
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -54,7 +51,10 @@ class RecyclerAdapter (
     }
 
     class ItemViewHolder(view : View) : RecyclerView.ViewHolder(view) {
-        fun bind(article: NewsApiResponse.Article?, listener: Listener) {
+        fun bind(
+            article: NewsApiResponse.Article?,
+            listener: (NewsApiResponse.Article) -> Unit
+        ) {
             if (article == null)
                 return
             val imageWidth = itemView.context.resources.getDimensionPixelSize(R.dimen.image_width)
@@ -71,7 +71,7 @@ class RecyclerAdapter (
 
             itemView.listTitleView.text = article.title
             itemView.listDateView.text = formatDateTime(article.publishedAt)
-            itemView.setOnClickListener{ listener.onItemClick(article) }
+            itemView.setOnClickListener{ listener(article) }
         }
     }
 
