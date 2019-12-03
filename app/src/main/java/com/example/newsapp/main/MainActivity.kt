@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity(), MainView {
     }
 
     override fun showProgress() {
+        mainAdapter.setLoading()
         swipe.isRefreshing = true
     }
 
@@ -82,6 +83,7 @@ class MainActivity : AppCompatActivity(), MainView {
     override fun showError(errorMessage: String?) {
         Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
         swipe.isRefreshing = false
+        mainAdapter.setLoading(false)
     }
 
     override fun loadArticle(article: NewsApiResponse.Article) {
@@ -97,7 +99,7 @@ class MainActivity : AppCompatActivity(), MainView {
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 if (!isLoading
                     && !dataInteractor.isFullyLoaded()
-                    && layoutManager.findLastCompletelyVisibleItemPosition() == dataInteractor.last()
+                    && layoutManager.findLastCompletelyVisibleItemPosition() >= dataInteractor.last()
                 ) {
                     isLoading = true
                     presenter.onScrollToBottom()
@@ -127,6 +129,7 @@ class MainActivity : AppCompatActivity(), MainView {
                     .putString(resources.getString(R.string.search_string_key), query)
                     .apply()
                 searchString = query
+                presenter.onDestroy()
                 initMainView(searchString)
                 presenter.onResume()
                 return false

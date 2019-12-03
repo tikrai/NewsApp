@@ -9,7 +9,6 @@ class MainPresenter(var mainView: MainView?, private val dataInteractor: DataInt
 
     fun onResume() {
         Log.d(TAG, "onResume")
-        mainView?.showProgress()
         dataInteractor.firstPage(this::onItemsLoaded, this::onError)
     }
 

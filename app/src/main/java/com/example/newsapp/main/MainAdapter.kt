@@ -14,13 +14,21 @@ class MainAdapter (
     private val listener : (NewsApiResponse.Article) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var items : List<NewsApiResponse.Article?> = ArrayList()
+    private var items : ArrayList<NewsApiResponse.Article?> = arrayListOf(null)
     private val VIEW_TYPE_ITEM = 0
     private val VIEW_TYPE_LOADING = 1
 
     fun setItems(items : List<NewsApiResponse.Article?>) {
-        this.items = items
+        this.items = ArrayList(items)
         notifyDataSetChanged()
+    }
+
+    fun setLoading(isLoading: Boolean = true) {
+        if (isLoading) {
+            items.add(null)
+        } else if (items.isNotEmpty() && items[items.size - 1] == null) {
+                items.removeAt(items.size - 1)
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {

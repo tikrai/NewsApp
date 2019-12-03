@@ -30,7 +30,6 @@ class DataInteractor(
         onNext: (ArrayList<NewsApiResponse.Article?>) -> Unit,
         onError: (String?) -> Unit
     ) {
-        contents.add(null)
         loadPage(pagesLoaded + 1, onNext, onError)
     }
 
@@ -56,19 +55,19 @@ class DataInteractor(
                 if (pagesLoaded == 0) {
                     contents = ArrayList(result.articles)
                 } else {
-                    ensureNoNullElements()
                     contents.addAll(result.articles)
                 }
                 pagesLoaded++
                 totalArticles = result.totalResults
                 Log.d(TAG, "OnNext: Page ${pagesLoaded}, total results ${totalArticles}")
-
+                if (totalArticles == 0) {
+                    onError("No articles found for search key \"${searchString}\"")
+                }
                 onNext(contents)
             }
 
             override fun onError(e: Throwable) {
                 Log.d(TAG, "Error: $e")
-                ensureNoNullElements()
                 onError(e.message)
             }
 
@@ -81,11 +80,4 @@ class DataInteractor(
     }
 
     fun last() = contents.size - 1
-
-    //todo move progress bar functionality (null element) to main presenter or main adapter
-    private fun ensureNoNullElements() {
-        if (contents.isNotEmpty() && contents[contents.size - 1] == null) {
-            contents.removeAt(contents.size - 1)
-        }
-    }
 }
