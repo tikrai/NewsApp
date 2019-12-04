@@ -1,19 +1,16 @@
 package com.example.newsapp.main
 
-import android.util.Log
+import com.example.newsapp.BaseSchedulerProvider
 import com.example.newsapp.models.NewsApiResponse
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.observers.DisposableObserver
-import io.reactivex.schedulers.Schedulers
 
 class DataInteractor(
     private val newsApiService: NewsApiService,
+    private val scheduleProvider: BaseSchedulerProvider,
     private val articlesPerPage: Int,
     private val apiKey: String,
     private val searchString: String
 ) {
-    private val TAG = "DataInteractor"
-
     private var contents: ArrayList<NewsApiResponse.Article?> = ArrayList()
     private var pagesLoaded = 0
     private var totalArticles = 0
@@ -40,8 +37,8 @@ class DataInteractor(
     ) {
         newsApiService
             .getData(searchString, articlesPerPage, pageToLoad, apiKey)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(scheduleProvider.io())
+            .observeOn(scheduleProvider.ui())
             .subscribe(getObserver(onNext, onError))
     }
 
@@ -59,7 +56,6 @@ class DataInteractor(
                 }
                 pagesLoaded++
                 totalArticles = result.totalResults
-                Log.d(TAG, "OnNext: Page ${pagesLoaded}, total results ${totalArticles}")
                 if (totalArticles == 0) {
                     onError("No articles found for search key \"${searchString}\"")
                 }
@@ -67,7 +63,6 @@ class DataInteractor(
             }
 
             override fun onError(e: Throwable) {
-                Log.d(TAG, "Error: $e")
                 onError(e.message)
             }
 

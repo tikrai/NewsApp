@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity(), MainView {
     private fun initMainView(searchString: String) {
         dataInteractor = DataInteractor(
             newsApiService,
+            SchedulerProvider(),
             resources.getInteger(R.integer.articles_per_page),
             resources.getString(R.string.api_key),
             searchString
