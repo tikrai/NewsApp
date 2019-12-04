@@ -11,10 +11,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.newsapp.*
+import com.example.newsapp.BaseSchedulerProvider.SchedulerProvider
+import com.example.newsapp.BuildConfig
+import com.example.newsapp.R
 import com.example.newsapp.article.ArticleViewActivity
 import com.example.newsapp.models.NewsApiResponse
-import kotlinx.android.synthetic.main.include_list.*
+import kotlinx.android.synthetic.main.include_list.listView
+import kotlinx.android.synthetic.main.include_list.swipe
+import kotlinx.android.synthetic.main.include_list.toolbar
 
 class MainActivity : AppCompatActivity(), MainView {
     private lateinit var dataInteractor: DataInteractor

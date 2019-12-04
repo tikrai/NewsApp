@@ -1,14 +1,20 @@
 package com.example.newsapp.article
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.activity_article_view.*
 import android.content.Intent
 import android.net.Uri
-import com.example.newsapp.models.NewsApiResponse
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.example.newsapp.R
 import com.example.newsapp.Utils.Companion.formatDateTime
+import com.example.newsapp.models.NewsApiResponse
+import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.activity_article_view.articleToolbar
+import kotlinx.android.synthetic.main.activity_article_view.authorView
+import kotlinx.android.synthetic.main.activity_article_view.button
+import kotlinx.android.synthetic.main.activity_article_view.dateView
+import kotlinx.android.synthetic.main.activity_article_view.descriptionView
+import kotlinx.android.synthetic.main.activity_article_view.imageView
+import kotlinx.android.synthetic.main.activity_article_view.titleView
 
 class ArticleViewActivity : AppCompatActivity() {
 
@@ -16,7 +22,7 @@ class ArticleViewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_article_view)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(articleToolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         val article_key = resources.getString(R.string.intent_extra_key_article)

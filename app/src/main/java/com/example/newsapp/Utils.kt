@@ -1,7 +1,7 @@
 package com.example.newsapp
 
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 class Utils {
 

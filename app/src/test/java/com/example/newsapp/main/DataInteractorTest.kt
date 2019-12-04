@@ -1,6 +1,6 @@
 package com.example.newsapp.main
 
-import com.example.newsapp.TrampolineSchedulerProvider
+import com.example.newsapp.BaseSchedulerProvider.TrampolineSchedulerProvider
 import com.example.newsapp.models.NewsApiResponse
 import io.reactivex.Observable
 import org.junit.Assert.assertEquals

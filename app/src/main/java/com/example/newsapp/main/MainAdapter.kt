@@ -8,7 +8,9 @@ import com.example.newsapp.models.NewsApiResponse
 import com.example.newsapp.R
 import com.example.newsapp.Utils.Companion.formatDateTime
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.news_list_item.view.*
+import kotlinx.android.synthetic.main.news_list_item.view.listDateView
+import kotlinx.android.synthetic.main.news_list_item.view.listImageView
+import kotlinx.android.synthetic.main.news_list_item.view.listTitleView
 
 class MainAdapter (
     private val listener : (NewsApiResponse.Article) -> Unit
@@ -27,7 +29,7 @@ class MainAdapter (
         if (isLoading) {
             items.add(null)
         } else if (items.isNotEmpty() && items[items.size - 1] == null) {
-                items.removeAt(items.size - 1)
+            items.removeAt(items.size - 1)
         }
     }
 
@@ -53,8 +55,9 @@ class MainAdapter (
     override fun getItemCount(): Int = items.count()
 
     override fun getItemViewType(position: Int): Int {
-        if (items[position] == null)
+        if (items[position] == null) {
             return VIEW_TYPE_LOADING
+        }
         return VIEW_TYPE_ITEM
     }
 
@@ -63,8 +66,7 @@ class MainAdapter (
             article: NewsApiResponse.Article?,
             listener: (NewsApiResponse.Article) -> Unit
         ) {
-            if (article == null)
-                return
+            if (article == null) return
             val imageWidth = itemView.context.resources.getDimensionPixelSize(R.dimen.image_width)
             try {
                 Picasso.with(itemView.context)
