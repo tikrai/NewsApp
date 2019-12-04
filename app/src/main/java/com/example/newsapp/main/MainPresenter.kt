@@ -1,14 +1,10 @@
 package com.example.newsapp.main
 
-import android.util.Log
 import com.example.newsapp.models.NewsApiResponse
 
 class MainPresenter(var mainView: MainView?, private val dataInteractor: DataInteractor) {
 
-    private val TAG = "MainPresenter"
-
-    fun onResume() {
-        Log.d(TAG, "onResume")
+    fun onRefresh() {
         dataInteractor.firstPage(this::onItemsLoaded, this::onError)
     }
 
@@ -27,7 +23,6 @@ class MainPresenter(var mainView: MainView?, private val dataInteractor: DataInt
     }
 
     fun onScrollToBottom() {
-        Log.d(TAG, "onScrollToBottom")
         mainView?.showProgress()
         dataInteractor.nextPage(this::onItemsLoaded, this::onError)
     }

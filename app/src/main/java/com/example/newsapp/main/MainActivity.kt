@@ -43,9 +43,10 @@ class MainActivity : AppCompatActivity(), MainView {
         initMainView(searchString)
         setSupportActionBar(toolbar)
         swipe.setOnRefreshListener {
-            presenter.onResume()
+            presenter.onRefresh()
         }
         initScrollListener()
+        presenter.onRefresh()
     }
 
     private fun initMainView(searchString: String) {
@@ -59,11 +60,6 @@ class MainActivity : AppCompatActivity(), MainView {
         presenter = MainPresenter(this, dataInteractor)
         mainAdapter = MainAdapter(presenter::onItemClicked)
         listView.adapter = mainAdapter
-    }
-
-    override fun onResume() {
-        super.onResume()
-        presenter.onResume()
     }
 
     override fun onDestroy() {
@@ -136,7 +132,7 @@ class MainActivity : AppCompatActivity(), MainView {
                 searchString = query
                 presenter.onDestroy()
                 initMainView(searchString)
-                presenter.onResume()
+                presenter.onRefresh()
                 return false
             }
 
