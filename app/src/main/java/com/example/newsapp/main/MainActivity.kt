@@ -16,9 +16,9 @@ import com.example.newsapp.BuildConfig
 import com.example.newsapp.R
 import com.example.newsapp.article.ArticleViewActivity
 import com.example.newsapp.models.NewsApiResponse
-import kotlinx.android.synthetic.main.include_list.listView
-import kotlinx.android.synthetic.main.include_list.swipe
-import kotlinx.android.synthetic.main.include_list.toolbar
+import kotlinx.android.synthetic.main.activity_main.listView
+import kotlinx.android.synthetic.main.activity_main.swipe
+import kotlinx.android.synthetic.main.activity_main.toolbar
 
 class MainActivity : AppCompatActivity(), MainView {
     private lateinit var dataInteractor: DataInteractor
