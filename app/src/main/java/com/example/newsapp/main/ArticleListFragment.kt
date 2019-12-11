@@ -11,8 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.newsapp.BaseSchedulerProvider
 import com.example.newsapp.BuildConfig
 import com.example.newsapp.R
@@ -23,14 +21,13 @@ import kotlinx.android.synthetic.main.fragment_article_list.view.swipe
 import kotlinx.android.synthetic.main.fragment_article_list.view.toolbar
 
 class ArticleListFragment : Fragment(), MainView {
+
     private lateinit var settings: SharedPreferences
     private lateinit var listener: OnArticleSelected
     private lateinit var dataInteractor: DataInteractor
     private val newsApiService by lazy { NewsApiService.create() }
     private lateinit var presenter: MainPresenter
     private lateinit var mainAdapter: MainAdapter
-    private var isLoading = false
-
 
     companion object {
         fun newInstance(): ArticleListFragment {
@@ -65,7 +62,7 @@ class ArticleListFragment : Fragment(), MainView {
             searchString
         )
         presenter = MainPresenter(this, dataInteractor)
-        mainAdapter = MainAdapter(presenter::onItemClicked)
+        mainAdapter = MainAdapter(presenter::onItemClicked, presenter::onScrollToBottom)
         presenter.onRefresh()
     }
 
@@ -75,17 +72,10 @@ class ArticleListFragment : Fragment(), MainView {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_article_list, container, false)
-
         view.list_view.adapter = mainAdapter
-        initScrollListener(view.list_view)
-
         view.toolbar.inflateMenu(R.menu.menu_toolbar)
         initMenuListener(view.toolbar.menu)
-
-        view.swipe.setOnRefreshListener {
-            presenter.onRefresh()
-        }
-
+        view.swipe.setOnRefreshListener { presenter.onRefresh() }
         return view
     }
 
@@ -122,24 +112,7 @@ class ArticleListFragment : Fragment(), MainView {
         })
     }
 
-    private fun initScrollListener(listView: RecyclerView) {
-        listView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                if (!isLoading
-                    && !dataInteractor.isFullyLoaded()
-                    && layoutManager.findLastCompletelyVisibleItemPosition() >= dataInteractor.last()
-                ) {
-                    isLoading = true
-                    presenter.onScrollToBottom()
-                }
-            }
-        })
-    }
-
     override fun showProgress() {
-        mainAdapter.setLoading()
         swipe.isRefreshing = true
     }
 
@@ -147,15 +120,14 @@ class ArticleListFragment : Fragment(), MainView {
         swipe.isRefreshing = false
     }
 
-    override fun setItems(items: List<NewsApiResponse.Article?>) {
-        mainAdapter.setItems(items)
-        isLoading = false
+    override fun setItems(items: List<NewsApiResponse.Article?>, isFull: Boolean) {
+        mainAdapter.setItems(items, isFull)
     }
 
     override fun showError(errorMessage: String?) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         swipe.isRefreshing = false
-        mainAdapter.setLoading(false)
+        mainAdapter.finishLoading()
     }
 
     override fun loadArticle(article: NewsApiResponse.Article) {

@@ -13,23 +13,30 @@ import kotlinx.android.synthetic.main.news_list_item.view.listImageView
 import kotlinx.android.synthetic.main.news_list_item.view.listTitleView
 
 class MainAdapter (
-    private val listener : (NewsApiResponse.Article) -> Unit
+    private val clickListener : (NewsApiResponse.Article) -> Unit,
+    private val lastItemListener : () -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var items : ArrayList<NewsApiResponse.Article?> = arrayListOf(null)
+    private var isLoading: Boolean = false
+    private var isFull: Boolean = false
     private val VIEW_TYPE_ITEM = 0
     private val VIEW_TYPE_LOADING = 1
 
-    fun setItems(items : List<NewsApiResponse.Article?>) {
+    fun setItems(items : List<NewsApiResponse.Article?>, isFull: Boolean) {
+        println("setting items. now have ${items.size} items")
+        this.isFull = isFull
+        if (!isFull) this.items.add(null)
         this.items = ArrayList(items)
+        isLoading = false
         notifyDataSetChanged()
     }
 
-    fun setLoading(isLoading: Boolean = true) {
-        if (isLoading) {
-            items.add(null)
-        } else if (items.isNotEmpty() && items[items.size - 1] == null) {
+    fun finishLoading() {
+        if (items.isNotEmpty() && items[items.size - 1] == null) {
             items.removeAt(items.size - 1)
+            notifyDataSetChanged()
+            isFull = true
         }
     }
 
@@ -47,12 +54,18 @@ class MainAdapter (
      }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        println("binding article ${position}")
         if (holder is ItemViewHolder) {
-            holder.bind(items[position], listener)
+            holder.bind(items[position], clickListener)
+        }
+        if (position >= items.size - 2 && !isLoading && !isFull) {
+            println("Main adapter binded last item of ${items.size}. adding more")
+            isLoading = true
+            lastItemListener()
         }
     }
 
-    override fun getItemCount(): Int = items.count()
+    override fun getItemCount(): Int = items.size
 
     override fun getItemViewType(position: Int): Int {
         if (items[position] == null) {
@@ -64,7 +77,7 @@ class MainAdapter (
     class ItemViewHolder(view : View) : RecyclerView.ViewHolder(view) {
         fun bind(
             article: NewsApiResponse.Article?,
-            listener: (NewsApiResponse.Article) -> Unit
+            clickListener: (NewsApiResponse.Article) -> Unit
         ) {
             if (article == null) return
             val imageWidth = itemView.context.resources.getDimensionPixelSize(R.dimen.image_width)
@@ -81,7 +94,7 @@ class MainAdapter (
 
             itemView.listTitleView.text = article.title
             itemView.listDateView.text = formatDateTime(article.publishedAt)
-            itemView.setOnClickListener{ listener(article) }
+            itemView.setOnClickListener { clickListener(article) }
         }
     }
 

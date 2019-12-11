@@ -1,7 +1,8 @@
 package com.example.newsapp.main
 
 import com.example.newsapp.BaseSchedulerProvider.TrampolineSchedulerProvider
-import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.models.NewsApiResponse.Article
+import com.example.newsapp.models.NewsApiResponse.Result
 import io.reactivex.Observable
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -15,11 +16,12 @@ class DataInteractorTest {
     val articlesPerPage = 1
     val apiKey = "apiKey"
     val searchString = "searchString"
-    val article1 = NewsApiResponse.Article(title = "First")
-    val article2 = NewsApiResponse.Article(title = "Second")
+    val article1 = Article(title = "First")
+    val article2 = Article(title = "Second")
     lateinit var newsApiService: NewsApiService
     lateinit var dataInteractor: DataInteractor
-    lateinit var items: List<NewsApiResponse.Article?>
+    lateinit var items: List<Article?>
+    var isFull: Boolean = false
     var errorMessage: String? = null
 
     @Before
@@ -35,9 +37,9 @@ class DataInteractorTest {
         items = listOf()
         errorMessage = null
         _when(newsApiService.getData(searchString, articlesPerPage, 1, apiKey))
-            .thenReturn(Observable.just(NewsApiResponse.Result("OK", 2, listOf(article1))))
+            .thenReturn(Observable.just(Result("OK", 2, listOf(article1))))
         _when(newsApiService.getData(searchString, articlesPerPage, 2, apiKey))
-            .thenReturn(Observable.just(NewsApiResponse.Result("OK", 2, listOf(article2))))
+            .thenReturn(Observable.just(Result("OK", 2, listOf(article2))))
     }
 
     @Test
@@ -48,18 +50,6 @@ class DataInteractorTest {
         assertEquals(null, errorMessage)
         verify(newsApiService).getData(searchString, articlesPerPage, 1, apiKey)
         verifyNoMoreInteractions(newsApiService)
-    }
-
-    @Test
-    fun shouldReturnIsNotFullyLoadedAfterFetchingFirstPage() {
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-        assertEquals(false, dataInteractor.isFullyLoaded())
-    }
-
-    @Test
-    fun shouldReturnLastItemIndexAfterFetchingFirstPage() {
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-        assertEquals(0, dataInteractor.last())
     }
 
     @Test
@@ -75,22 +65,6 @@ class DataInteractorTest {
     }
 
     @Test
-    fun shouldReturnIsFullyLoadedAfterFetchingFirstAndSecondPage() {
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-        dataInteractor.nextPage(this::onItemsLoaded, this::onError)
-
-        assertEquals(true, dataInteractor.isFullyLoaded())
-    }
-
-    @Test
-    fun shouldReturnLastItemIndexAfterFetchingFirstAndSecondPage() {
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-        dataInteractor.nextPage(this::onItemsLoaded, this::onError)
-
-        assertEquals(1, dataInteractor.last())
-    }
-
-    @Test
     fun shouldFailFetchingThirdPage() {
         val expectedErrorMessage = "error"
         _when(newsApiService.getData(searchString, articlesPerPage, 3, apiKey))
@@ -102,13 +76,13 @@ class DataInteractorTest {
 
         dataInteractor.nextPage(this::onItemsLoaded, this::onError)
 
-        val expectedList: List<NewsApiResponse.Article> = listOf()
-        assertEquals(expectedList, items)
+        assertEquals(listOf<Article>(), items)
         assertEquals(expectedErrorMessage, errorMessage)
     }
 
-    private fun onItemsLoaded(items: List<NewsApiResponse.Article?>) {
+    private fun onItemsLoaded(items: List<Article?>, isFull: Boolean) {
         this.items = items
+        this.isFull = isFull
     }
 
     private fun onError(errorMessage: String?) {

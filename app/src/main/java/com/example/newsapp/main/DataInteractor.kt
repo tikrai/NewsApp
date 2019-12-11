@@ -1,7 +1,8 @@
 package com.example.newsapp.main
 
 import com.example.newsapp.BaseSchedulerProvider
-import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.models.NewsApiResponse.Article
+import com.example.newsapp.models.NewsApiResponse.Result
 import io.reactivex.observers.DisposableObserver
 
 class DataInteractor(
@@ -11,12 +12,12 @@ class DataInteractor(
     private val apiKey: String,
     val searchString: String
 ) {
-    private var contents: ArrayList<NewsApiResponse.Article?> = ArrayList()
+    private var contents: ArrayList<Article> = ArrayList()
     private var pagesLoaded = 0
     private var totalArticles = 0
 
     fun firstPage(
-        onNext: (ArrayList<NewsApiResponse.Article?>) -> Unit,
+        onNext: (ArrayList<Article>, Boolean) -> Unit,
         onError: (String?) -> Unit
     ) {
         pagesLoaded = 0
@@ -24,7 +25,7 @@ class DataInteractor(
     }
 
     fun nextPage(
-        onNext: (ArrayList<NewsApiResponse.Article?>) -> Unit,
+        onNext: (ArrayList<Article>, Boolean) -> Unit,
         onError: (String?) -> Unit
     ) {
         loadPage(pagesLoaded + 1, onNext, onError)
@@ -32,7 +33,7 @@ class DataInteractor(
 
     private fun loadPage(
         pageToLoad: Int,
-        onNext: (ArrayList<NewsApiResponse.Article?>) -> Unit,
+        onNext: (ArrayList<Article>, Boolean) -> Unit,
         onError: (String?) -> Unit
     ) {
         newsApiService
@@ -43,12 +44,11 @@ class DataInteractor(
     }
 
     private fun getObserver(
-        onNext: (ArrayList<NewsApiResponse.Article?>) -> Unit,
+        onNext: (ArrayList<Article>, Boolean) -> Unit,
         onError: (String?) -> Unit
-    ): DisposableObserver<NewsApiResponse.Result> {
-        return object : DisposableObserver<NewsApiResponse.Result>() {
-
-            override fun onNext(result: NewsApiResponse.Result) {
+    ): DisposableObserver<Result> {
+        return object : DisposableObserver<Result>() {
+            override fun onNext(result: Result) {
                 if (pagesLoaded == 0) {
                     contents = ArrayList(result.articles)
                 } else {
@@ -59,7 +59,8 @@ class DataInteractor(
                 if (totalArticles == 0) {
                     onError("No articles found for search key \"${searchString}\"")
                 }
-                onNext(contents)
+                val isFull = contents.size >= totalArticles
+                onNext(contents, isFull)
             }
 
             override fun onError(e: Throwable) {
@@ -69,12 +70,6 @@ class DataInteractor(
             override fun onComplete() {}
         }
     }
-
-    fun isFullyLoaded(): Boolean {
-        return totalArticles <= contents.size
-    }
-
-    fun last() = contents.size - 1
 
     fun withSearchString(searchString: String): DataInteractor =
         DataInteractor(newsApiService, scheduleProvider, articlesPerPage, apiKey, searchString)
