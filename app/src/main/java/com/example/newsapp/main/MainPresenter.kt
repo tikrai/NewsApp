@@ -2,9 +2,14 @@ package com.example.newsapp.main
 
 import com.example.newsapp.models.NewsApiResponse
 
-class MainPresenter(var mainView: MainView?, private val dataInteractor: DataInteractor) {
+class MainPresenter(var mainView: MainView?, private var dataInteractor: DataInteractor) {
 
     fun onRefresh() {
+        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
+    }
+
+    fun onRefresh(newDataInteractor: DataInteractor) {
+        dataInteractor = newDataInteractor
         dataInteractor.firstPage(this::onItemsLoaded, this::onError)
     }
 

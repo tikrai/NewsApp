@@ -9,7 +9,7 @@ class DataInteractor(
     private val scheduleProvider: BaseSchedulerProvider,
     private val articlesPerPage: Int,
     private val apiKey: String,
-    private val searchString: String
+    val searchString: String
 ) {
     private var contents: ArrayList<NewsApiResponse.Article?> = ArrayList()
     private var pagesLoaded = 0
@@ -75,4 +75,7 @@ class DataInteractor(
     }
 
     fun last() = contents.size - 1
+
+    fun withSearchString(searchString: String): DataInteractor =
+        DataInteractor(newsApiService, scheduleProvider, articlesPerPage, apiKey, searchString)
 }
