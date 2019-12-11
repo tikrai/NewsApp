@@ -14,7 +14,7 @@ import androidx.appcompat.widget.SearchView
 import com.example.newsapp.BaseSchedulerProvider
 import com.example.newsapp.BuildConfig
 import com.example.newsapp.R
-import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.models.NewsApiResponse.Article
 import kotlinx.android.synthetic.main.fragment_article_list.swipe
 import kotlinx.android.synthetic.main.fragment_article_list.view.list_view
 import kotlinx.android.synthetic.main.fragment_article_list.view.swipe
@@ -120,7 +120,7 @@ class ArticleListFragment : Fragment(), MainView {
         swipe.isRefreshing = false
     }
 
-    override fun setItems(items: List<NewsApiResponse.Article?>, isFull: Boolean) {
+    override fun setItems(items: List<Article?>, isFull: Boolean) {
         mainAdapter.setItems(items, isFull)
     }
 
@@ -130,11 +130,11 @@ class ArticleListFragment : Fragment(), MainView {
         mainAdapter.finishLoading()
     }
 
-    override fun loadArticle(article: NewsApiResponse.Article) {
+    override fun loadArticle(article: Article) {
         listener.onArticleSelected(article)
     }
 
     interface OnArticleSelected {
-        fun onArticleSelected(article: NewsApiResponse.Article)
+        fun onArticleSelected(article: Article)
     }
 }

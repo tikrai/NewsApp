@@ -1,6 +1,6 @@
 package com.example.newsapp.main
 
-import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.models.NewsApiResponse.Article
 
 class MainPresenter(
     var mainView: MainView?,
@@ -15,10 +15,10 @@ class MainPresenter(
     fun onRefresh(newDataInteractor: DataInteractor) {
         println("onRefresh with new data")
         dataInteractor = newDataInteractor
-        dataInteractor.firstPage({ items, isFull -> this.onItemsLoaded(items, isFull) }, this::onError)
+        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
     }
 
-    private fun onItemsLoaded(items: List<NewsApiResponse.Article?>, isFull: Boolean) {
+    private fun onItemsLoaded(items: List<Article?>, isFull: Boolean) {
         println("onItemsLoaded")
         mainView?.apply {
             setItems(items, isFull)
@@ -38,7 +38,7 @@ class MainPresenter(
         dataInteractor.nextPage(this::onItemsLoaded, this::onError)
     }
 
-    fun onItemClicked(item: NewsApiResponse.Article) {
+    fun onItemClicked(item: Article) {
         println("onItemClicked: ${item.title}")
         mainView?.loadArticle(item)
     }

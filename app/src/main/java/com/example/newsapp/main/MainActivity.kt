@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.newsapp.ArticleDetailsFragment
 import com.example.newsapp.R
-import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.models.NewsApiResponse.Article
 
 class MainActivity : AppCompatActivity(), ArticleListFragment.OnArticleSelected {
 
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity(), ArticleListFragment.OnArticleSelected 
         }
     }
 
-    override fun onArticleSelected(article: NewsApiResponse.Article) {
+    override fun onArticleSelected(article: Article) {
         val detailsFragment = ArticleDetailsFragment.newInstance(article)
         supportFragmentManager
             .beginTransaction()
