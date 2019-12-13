@@ -1,9 +1,10 @@
-package com.example.newsapp.main
+package com.example.newsapp.article_list
 
+import com.example.newsapp.DataInteractor
 import com.example.newsapp.models.NewsApiResponse.Article
 
-class MainPresenter(
-    var mainView: MainView?,
+class ListPresenter(
+    var listView: ListView?,
     private var dataInteractor: DataInteractor
 ) {
 
@@ -20,14 +21,14 @@ class MainPresenter(
 
     private fun onItemsLoaded(items: List<Article?>, isFull: Boolean) {
         println("onItemsLoaded")
-        mainView?.apply {
+        listView?.apply {
             setItems(items, isFull)
             hideProgress()
         }
     }
 
     private fun onError(errorMessage: String?) {
-        mainView?.apply {
+        listView?.apply {
             showError(errorMessage)
             hideProgress()
         }
@@ -40,10 +41,10 @@ class MainPresenter(
 
     fun onItemClicked(item: Article) {
         println("onItemClicked: ${item.title}")
-        mainView?.loadArticle(item)
+        listView?.loadArticle(item)
     }
 
     fun onDestroy() {
-        mainView = null
+        listView = null
     }
 }

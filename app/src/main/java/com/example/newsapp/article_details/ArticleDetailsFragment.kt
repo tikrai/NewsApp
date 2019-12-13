@@ -1,4 +1,4 @@
-package com.example.newsapp
+package com.example.newsapp.article_details
 
 import android.content.Intent
 import android.net.Uri
@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.newsapp.R
+import com.example.newsapp.Utils
 import com.example.newsapp.models.NewsApiResponse.Article
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_article_details.view.articleToolbar

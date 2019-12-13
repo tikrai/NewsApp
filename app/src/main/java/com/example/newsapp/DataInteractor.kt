@@ -1,6 +1,5 @@
-package com.example.newsapp.main
+package com.example.newsapp
 
-import com.example.newsapp.BaseSchedulerProvider
 import com.example.newsapp.models.NewsApiResponse.Article
 import com.example.newsapp.models.NewsApiResponse.Result
 import io.reactivex.observers.DisposableObserver

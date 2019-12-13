@@ -1,5 +1,6 @@
-package com.example.newsapp.main
+package com.example.newsapp.article_list
 
+import com.example.newsapp.NewsApiService
 import com.example.newsapp.models.NewsApiResponse
 import com.google.gson.JsonSyntaxException
 import okhttp3.mockwebserver.MockResponse

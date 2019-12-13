@@ -1,6 +1,8 @@
-package com.example.newsapp.main
+package com.example.newsapp.article_list
 
 import com.example.newsapp.BaseSchedulerProvider.TrampolineSchedulerProvider
+import com.example.newsapp.DataInteractor
+import com.example.newsapp.NewsApiService
 import com.example.newsapp.models.NewsApiResponse.Article
 import com.example.newsapp.models.NewsApiResponse.Result
 import io.reactivex.Observable

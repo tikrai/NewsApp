@@ -1,4 +1,4 @@
-package com.example.newsapp.main
+package com.example.newsapp.article_list
 
 import android.view.LayoutInflater
 import android.view.View
@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.news_list_item.view.listDateView
 import kotlinx.android.synthetic.main.news_list_item.view.listImageView
 import kotlinx.android.synthetic.main.news_list_item.view.listTitleView
 
-class MainAdapter (
+class ListAdapter (
     private val clickListener : (Article) -> Unit,
     private val onLastItemShownListener : () -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {

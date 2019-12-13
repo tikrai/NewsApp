@@ -1,4 +1,4 @@
-package com.example.newsapp.main
+package com.example.newsapp
 
 import com.example.newsapp.models.NewsApiResponse
 import io.reactivex.Observable

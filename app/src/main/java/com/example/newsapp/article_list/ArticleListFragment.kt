@@ -1,4 +1,4 @@
-package com.example.newsapp.main
+package com.example.newsapp.article_list
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -13,6 +13,8 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import com.example.newsapp.BaseSchedulerProvider
 import com.example.newsapp.BuildConfig
+import com.example.newsapp.DataInteractor
+import com.example.newsapp.NewsApiService
 import com.example.newsapp.R
 import com.example.newsapp.models.NewsApiResponse.Article
 import kotlinx.android.synthetic.main.fragment_article_list.swipe
@@ -20,14 +22,14 @@ import kotlinx.android.synthetic.main.fragment_article_list.view.list_view
 import kotlinx.android.synthetic.main.fragment_article_list.view.swipe
 import kotlinx.android.synthetic.main.fragment_article_list.view.toolbar
 
-class ArticleListFragment : Fragment(), MainView {
+class ArticleListFragment : Fragment(), ListView {
 
     private lateinit var settings: SharedPreferences
     private lateinit var listener: OnArticleSelected
     private lateinit var dataInteractor: DataInteractor
     private val newsApiService by lazy { NewsApiService.create() }
-    private lateinit var presenter: MainPresenter
-    private lateinit var mainAdapter: MainAdapter
+    private lateinit var presenter: ListPresenter
+    private lateinit var listAdapter: ListAdapter
 
     companion object {
         fun newInstance(): ArticleListFragment {
@@ -61,8 +63,8 @@ class ArticleListFragment : Fragment(), MainView {
             resources.getString(R.string.api_key),
             searchString
         )
-        presenter = MainPresenter(this, dataInteractor)
-        mainAdapter = MainAdapter(presenter::onItemClicked, presenter::onScrollToBottom)
+        presenter = ListPresenter(this, dataInteractor)
+        listAdapter = ListAdapter(presenter::onItemClicked, presenter::onScrollToBottom)
         presenter.onRefresh()
     }
 
@@ -72,7 +74,7 @@ class ArticleListFragment : Fragment(), MainView {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_article_list, container, false)
-        view.list_view.adapter = mainAdapter
+        view.list_view.adapter = listAdapter
         view.toolbar.inflateMenu(R.menu.menu_toolbar)
         initMenuListener(view.toolbar.menu)
         view.swipe.setOnRefreshListener { presenter.onRefresh() }
@@ -121,13 +123,13 @@ class ArticleListFragment : Fragment(), MainView {
     }
 
     override fun setItems(items: List<Article?>, isFull: Boolean) {
-        mainAdapter.setItems(items, isFull)
+        listAdapter.setItems(items, isFull)
     }
 
     override fun showError(errorMessage: String?) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         swipe.isRefreshing = false
-        mainAdapter.finishLoading()
+        listAdapter.finishLoading()
     }
 
     override fun loadArticle(article: Article) {

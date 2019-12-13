@@ -1,9 +1,9 @@
-package com.example.newsapp.main
+package com.example.newsapp
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.newsapp.ArticleDetailsFragment
-import com.example.newsapp.R
+import com.example.newsapp.article_details.ArticleDetailsFragment
+import com.example.newsapp.article_list.ArticleListFragment
 import com.example.newsapp.models.NewsApiResponse.Article
 
 class MainActivity : AppCompatActivity(), ArticleListFragment.OnArticleSelected {
