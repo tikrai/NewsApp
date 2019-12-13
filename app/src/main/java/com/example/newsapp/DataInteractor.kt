@@ -56,7 +56,8 @@ class DataInteractor(
                 pagesLoaded++
                 totalArticles = result.totalResults
                 if (totalArticles == 0) {
-                    onError("No articles found for search key \"${searchString}\"")
+                    val errorNoResults = "No articles found for search key: ${searchString}"
+                    onError(errorNoResults)
                 }
                 val isFull = contents.size >= totalArticles
                 onNext(contents, isFull)

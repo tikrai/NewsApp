@@ -1,7 +1,7 @@
 <resources>
+    <string name="base_url">https://newsapi.org/v2/</string>
     <string name="api_key">64e9fccefc4e42808fd3035c23e8a490</string>
     <string name="search_string_key">searchString</string>
-    <string name="search_string_default">Trump</string>
-    <string name="intent_extra_key_article">article</string>
+    <string name="search_string_default">Tesla</string>
     <integer name="articles_per_page">10</integer>
 </resources>

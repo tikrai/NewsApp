@@ -1,6 +1,6 @@
 package com.example.newsapp
 
-import com.example.newsapp.Utils.Companion.formatDateTime
+import com.example.newsapp.Utils.formatDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

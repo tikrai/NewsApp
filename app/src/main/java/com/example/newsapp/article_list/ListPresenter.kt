@@ -9,18 +9,15 @@ class ListPresenter(
 ) {
 
     fun onRefresh() {
-        println("onRefresh")
         dataInteractor.firstPage(this::onItemsLoaded, this::onError)
     }
 
     fun onRefresh(newDataInteractor: DataInteractor) {
-        println("onRefresh with new data")
         dataInteractor = newDataInteractor
         dataInteractor.firstPage(this::onItemsLoaded, this::onError)
     }
 
     private fun onItemsLoaded(items: List<Article?>, isFull: Boolean) {
-        println("onItemsLoaded")
         listView?.apply {
             setItems(items, isFull)
             hideProgress()
@@ -35,12 +32,10 @@ class ListPresenter(
     }
 
     fun onScrollToBottom() {
-        println("onScrollToBottom")
         dataInteractor.nextPage(this::onItemsLoaded, this::onError)
     }
 
     fun onItemClicked(item: Article) {
-        println("onItemClicked: ${item.title}")
         listView?.loadArticle(item)
     }
 

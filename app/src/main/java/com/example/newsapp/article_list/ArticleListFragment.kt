@@ -27,7 +27,9 @@ class ArticleListFragment : Fragment(), ListView {
     private lateinit var settings: SharedPreferences
     private lateinit var listener: OnArticleSelected
     private lateinit var dataInteractor: DataInteractor
-    private val newsApiService by lazy { NewsApiService.create() }
+    private val newsApiService by lazy {
+        NewsApiService.create(resources.getString(R.string.base_url))
+    }
     private lateinit var presenter: ListPresenter
     private lateinit var listAdapter: ListAdapter
 

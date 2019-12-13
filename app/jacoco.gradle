@@ -1,0 +1,45 @@
+apply plugin: 'jacoco'
+
+ext {
+    coverageSourceDirs = 'src/test/java'
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+    reportsDir = file("$buildDir/reports")
+}
+
+// run with:  gradlew testDebugUnitTest jacoco
+task jacoco(type: JacocoReport, dependsOn: "testDebugUnitTest") {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports for Debug build"
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def excludes = [
+            '**/R.class',
+            '**/R$*.class',
+            '**/*$ViewBinder*.*',
+            '**/*$InjectAdapter*.*',
+            '**/*Injector*.*',
+            '**/BuildConfig.*',
+            '**/Manifest*.*',
+            '**/*Test*.*',
+            '**/*Activity*.*',
+            '**/CiMattersApplication*.*',
+            'android/**/*.*'
+    ]
+
+    def debugTree = fileTree(
+            dir: "$buildDir/tmp/kotlin-classes/debug",
+            excludes: excludes)
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    classDirectories.from = files([debugTree])
+    executionData.from = files("$buildDir/jacoco/testDebugUnitTest.exec")
+    sourceDirectories.from = files([mainSrc])
+    println "See report: ${project.projectDir}\\build\\reports\\jacoco\\html\\index.html"
+}

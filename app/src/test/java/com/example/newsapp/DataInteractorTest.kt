@@ -1,8 +1,6 @@
-package com.example.newsapp.article_list
+package com.example.newsapp
 
 import com.example.newsapp.BaseSchedulerProvider.TrampolineSchedulerProvider
-import com.example.newsapp.DataInteractor
-import com.example.newsapp.NewsApiService
 import com.example.newsapp.models.NewsApiResponse.Article
 import com.example.newsapp.models.NewsApiResponse.Result
 import io.reactivex.Observable
@@ -67,6 +65,16 @@ class DataInteractorTest {
     }
 
     @Test
+    fun shouldCreateDataInteractorWithNewSearchString() {
+        val newSearchString = "newSearchString"
+
+        dataInteractor = dataInteractor.withSearchString(newSearchString)
+
+        assertEquals(newSearchString, dataInteractor.searchString)
+        verifyNoMoreInteractions(newsApiService)
+    }
+
+    @Test
     fun shouldFailFetchingThirdPage() {
         val expectedErrorMessage = "error"
         _when(newsApiService.getData(searchString, articlesPerPage, 3, apiKey))
@@ -77,6 +85,20 @@ class DataInteractorTest {
         errorMessage = null
 
         dataInteractor.nextPage(this::onItemsLoaded, this::onError)
+
+        assertEquals(listOf<Article>(), items)
+        assertEquals(expectedErrorMessage, errorMessage)
+    }
+
+    @Test
+    fun shouldFailFetchingWhenSearchReturnsNoResults() {
+        val expectedErrorMessage = "No articles found for search key: ${searchString}"
+        _when(newsApiService.getData(searchString, articlesPerPage, 1, apiKey))
+            .thenReturn(Observable.just(Result("OK", 0, listOf())))
+        items = listOf(article1)
+        errorMessage = null
+
+        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
 
         assertEquals(listOf<Article>(), items)
         assertEquals(expectedErrorMessage, errorMessage)

@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.newsapp.models.NewsApiResponse.Article
 import com.example.newsapp.R
-import com.example.newsapp.Utils.Companion.formatDateTime
+import com.example.newsapp.Utils.formatDateTime
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.news_list_item.view.listDateView
 import kotlinx.android.synthetic.main.news_list_item.view.listImageView
@@ -24,7 +24,6 @@ class ListAdapter (
     private val VIEW_TYPE_LOADING = 1
 
     fun setItems(items : List<Article?>, isFull: Boolean) {
-        println("setting items. now have ${items.size} items")
         this.items = ArrayList(items)
         this.isFull = isFull
         if (!isFull) {
@@ -56,11 +55,9 @@ class ListAdapter (
         }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        println("binding article ${position}")
         if (holder is ItemViewHolder) {
             holder.bind(items[position], clickListener)
             if (position >= items.size - 2 && !isLoading && !isFull) {
-                println("Main adapter binded last item of ${items.size}. adding more")
                 isLoading = true
                 onLastItemShownListener()
             }

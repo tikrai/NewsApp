@@ -1,4 +1,4 @@
-package com.example.newsapp.article_list
+package com.example.newsapp
 
 import com.example.newsapp.NewsApiService
 import com.example.newsapp.models.NewsApiResponse
