@@ -15,26 +15,11 @@ class DataInteractor(
     private var pagesLoaded = 0
     private var totalArticles = 0
 
-    fun firstPage(
+    fun loadPage(
         onNext: (ArrayList<Article>, Boolean) -> Unit,
         onError: (String?) -> Unit
     ) {
-        pagesLoaded = 0
-        loadPage(1, onNext, onError)
-    }
-
-    fun nextPage(
-        onNext: (ArrayList<Article>, Boolean) -> Unit,
-        onError: (String?) -> Unit
-    ) {
-        loadPage(pagesLoaded + 1, onNext, onError)
-    }
-
-    private fun loadPage(
-        pageToLoad: Int,
-        onNext: (ArrayList<Article>, Boolean) -> Unit,
-        onError: (String?) -> Unit
-    ) {
+        val pageToLoad = pagesLoaded + 1
         newsApiService
             .getData(searchString, articlesPerPage, pageToLoad, apiKey)
             .subscribeOn(scheduleProvider.io())
@@ -48,20 +33,17 @@ class DataInteractor(
     ): DisposableObserver<Result> {
         return object : DisposableObserver<Result>() {
             override fun onNext(result: Result) {
-                if (pagesLoaded == 0) {
-                    contents = ArrayList(result.articles)
-                } else {
-                    contents.addAll(result.articles)
-                }
-                pagesLoaded++
-                totalArticles = result.totalResults
-                if (totalArticles == 0) {
+                if (result.totalResults == 0) {
                     val errorNoResults = "No articles found for search key: ${searchString}"
                     onError(errorNoResults)
+                } else {
+                    contents.addAll(result.articles)
+                    pagesLoaded++
+                    totalArticles = result.totalResults
+                    val loadingIsFinished = contents.size >= totalArticles
+                    onNext(contents, loadingIsFinished)
                 }
-                val isFull = contents.size >= totalArticles
-                onNext(contents, isFull)
-            }
+             }
 
             override fun onError(e: Throwable) {
                 onError(e.message)

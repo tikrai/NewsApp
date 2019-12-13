@@ -4,6 +4,7 @@ import com.example.newsapp.BaseSchedulerProvider.TrampolineSchedulerProvider
 import com.example.newsapp.models.NewsApiResponse.Article
 import com.example.newsapp.models.NewsApiResponse.Result
 import io.reactivex.Observable
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -13,16 +14,17 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when` as _when
 
 class DataInteractorTest {
-    val articlesPerPage = 1
-    val apiKey = "apiKey"
-    val searchString = "searchString"
-    val article1 = Article(title = "First")
-    val article2 = Article(title = "Second")
-    lateinit var newsApiService: NewsApiService
-    lateinit var dataInteractor: DataInteractor
-    lateinit var items: List<Article?>
-    var isFull: Boolean = false
-    var errorMessage: String? = null
+    private val articlesPerPage = 1
+    private val apiKey = "apiKey"
+    private val searchString = "searchString"
+    private val article1 = Article(title = "First")
+    private val article2 = Article(title = "Second")
+    private lateinit var newsApiService: NewsApiService
+    private lateinit var dataInteractor: DataInteractor
+
+    private lateinit var items: List<Article?>
+    private var isFull: Boolean = false
+    private var errorMessage: String? = null
 
     @Before
     fun setup() {
@@ -34,82 +36,81 @@ class DataInteractorTest {
             apiKey,
             searchString
         )
-        items = listOf()
-        errorMessage = null
         _when(newsApiService.getData(searchString, articlesPerPage, 1, apiKey))
             .thenReturn(Observable.just(Result("OK", 2, listOf(article1))))
         _when(newsApiService.getData(searchString, articlesPerPage, 2, apiKey))
             .thenReturn(Observable.just(Result("OK", 2, listOf(article2))))
     }
 
-    @Test
-    fun shouldContainOneArticleAfterFetchingFirstPage() {
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-
-        assertEquals(listOf(article1), items)
-        assertEquals(null, errorMessage)
-        verify(newsApiService).getData(searchString, articlesPerPage, 1, apiKey)
+    @After
+    fun verifyMocks() {
         verifyNoMoreInteractions(newsApiService)
     }
 
     @Test
-    fun shouldContainTwoArticlesAfterFetchingFirstAndSecondPage() {
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-        dataInteractor.nextPage(this::onItemsLoaded, this::onError)
+    fun shouldContainOneArticleAfterFetchingFirstPage() {
+        setExpectedResults(listOf(article1), false)
+        dataInteractor.loadPage(this::assertItemsLoaded, this::assertErrorMessage)
+        verify(newsApiService).getData(searchString, articlesPerPage, 1, apiKey)
+    }
 
-        assertEquals(listOf(article1, article2), items)
-        assertEquals(null, errorMessage)
+    @Test
+    fun shouldContainTwoArticlesAfterFetchingFirstAndSecondPage() {
+        dataInteractor.loadPage({ _, _ -> }, { })
+        setExpectedResults(listOf(article1, article2), true)
+
+        dataInteractor.loadPage(this::assertItemsLoaded, this::assertErrorMessage)
+
         verify(newsApiService).getData(searchString, articlesPerPage, 1, apiKey)
         verify(newsApiService).getData(searchString, articlesPerPage, 2, apiKey)
-        verifyNoMoreInteractions(newsApiService)
+    }
+
+    @Test
+    fun shouldFailFetchingPage() {
+        val expectedErrorMessage = "error"
+        _when(newsApiService.getData(searchString, articlesPerPage, 1, apiKey))
+            .thenReturn(Observable.error(Exception(expectedErrorMessage)))
+        setExpectedError(expectedErrorMessage)
+
+        dataInteractor.loadPage(this::assertItemsLoaded, this::assertErrorMessage)
+
+        verify(newsApiService).getData(searchString, articlesPerPage, 1, apiKey)
+    }
+
+    @Test
+    fun shouldFailFetchingWhenSearchReturnsNoResults() {
+        val expectedErrorMessage = "No articles found for search key: $searchString"
+        _when(newsApiService.getData(searchString, articlesPerPage, 1, apiKey))
+            .thenReturn(Observable.just(Result("OK", 0, listOf())))
+        setExpectedError(expectedErrorMessage)
+
+        dataInteractor.loadPage(this::assertItemsLoaded, this::assertErrorMessage)
+
+        verify(newsApiService).getData(searchString, articlesPerPage, 1, apiKey)
     }
 
     @Test
     fun shouldCreateDataInteractorWithNewSearchString() {
         val newSearchString = "newSearchString"
-
         dataInteractor = dataInteractor.withSearchString(newSearchString)
-
         assertEquals(newSearchString, dataInteractor.searchString)
-        verifyNoMoreInteractions(newsApiService)
     }
 
-    @Test
-    fun shouldFailFetchingThirdPage() {
-        val expectedErrorMessage = "error"
-        _when(newsApiService.getData(searchString, articlesPerPage, 3, apiKey))
-            .thenReturn(Observable.error(Exception(expectedErrorMessage)))
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-        dataInteractor.nextPage(this::onItemsLoaded, this::onError)
-        items = listOf()
-        errorMessage = null
-
-        dataInteractor.nextPage(this::onItemsLoaded, this::onError)
-
-        assertEquals(listOf<Article>(), items)
-        assertEquals(expectedErrorMessage, errorMessage)
-    }
-
-    @Test
-    fun shouldFailFetchingWhenSearchReturnsNoResults() {
-        val expectedErrorMessage = "No articles found for search key: ${searchString}"
-        _when(newsApiService.getData(searchString, articlesPerPage, 1, apiKey))
-            .thenReturn(Observable.just(Result("OK", 0, listOf())))
-        items = listOf(article1)
-        errorMessage = null
-
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-
-        assertEquals(listOf<Article>(), items)
-        assertEquals(expectedErrorMessage, errorMessage)
-    }
-
-    private fun onItemsLoaded(items: List<Article?>, isFull: Boolean) {
+    private fun setExpectedResults(items: List<Article?>, isFull: Boolean) {
         this.items = items
         this.isFull = isFull
     }
 
-    private fun onError(errorMessage: String?) {
+    private fun setExpectedError(errorMessage: String?) {
         this.errorMessage = errorMessage
+    }
+
+    private fun assertItemsLoaded(items: List<Article?>, isFull: Boolean) {
+        assertEquals(this.items, items)
+        assertEquals(this.isFull, isFull)
+    }
+
+    private fun assertErrorMessage(errorMessage: String?) {
+        assertEquals(this.errorMessage, errorMessage)
     }
 }

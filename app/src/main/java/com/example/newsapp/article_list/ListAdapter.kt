@@ -19,25 +19,25 @@ class ListAdapter (
 
     private var items : ArrayList<Article?> = arrayListOf(null)
     private var isLoading: Boolean = false
-    private var isFull: Boolean = false
+    private var loadingIsFinished: Boolean = false
     private val VIEW_TYPE_ITEM = 0
     private val VIEW_TYPE_LOADING = 1
 
-    fun setItems(items : List<Article?>, isFull: Boolean) {
+    fun setItems(items : List<Article?>, loadingIsFinished: Boolean) {
         this.items = ArrayList(items)
-        this.isFull = isFull
-        if (!isFull) {
+        this.loadingIsFinished = loadingIsFinished
+        if (!loadingIsFinished) {
             this.items.add(null)
         }
         isLoading = false
         notifyDataSetChanged()
     }
 
-    fun finishLoading() {
+    fun setLoadingIsFinished() {
         if (items.isNotEmpty() && items[items.size - 1] == null) {
             items.removeAt(items.size - 1)
             notifyDataSetChanged()
-            isFull = true
+            loadingIsFinished = true
         }
     }
 
@@ -57,7 +57,7 @@ class ListAdapter (
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is ItemViewHolder) {
             holder.bind(items[position], clickListener)
-            if (position >= items.size - 2 && !isLoading && !isFull) {
+            if (position >= items.size - 2 && !isLoading && !loadingIsFinished) {
                 isLoading = true
                 onLastItemShownListener()
             }

@@ -4,17 +4,12 @@ import com.example.newsapp.DataInteractor
 import com.example.newsapp.models.NewsApiResponse.Article
 
 class ListPresenter(
-    var listView: ListView?,
-    private var dataInteractor: DataInteractor
+    private var listView: ListView?,
+    var dataInteractor: DataInteractor
 ) {
 
-    fun onRefresh() {
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
-    }
-
-    fun onRefresh(newDataInteractor: DataInteractor) {
-        dataInteractor = newDataInteractor
-        dataInteractor.firstPage(this::onItemsLoaded, this::onError)
+    fun loadData() {
+        dataInteractor.loadPage(this::onItemsLoaded, this::onError)
     }
 
     private fun onItemsLoaded(items: List<Article?>, isFull: Boolean) {
@@ -31,8 +26,8 @@ class ListPresenter(
         }
     }
 
-    fun onScrollToBottom() {
-        dataInteractor.nextPage(this::onItemsLoaded, this::onError)
+    fun onLastItemShown() {
+        loadData()
     }
 
     fun onItemClicked(item: Article) {
@@ -42,4 +37,11 @@ class ListPresenter(
     fun onDestroy() {
         listView = null
     }
+
+    fun setSearchString(searchString: String): ListPresenter {
+        dataInteractor = dataInteractor.withSearchString(searchString)
+        return this
+    }
+
+    fun resetInteractor(): ListPresenter = setSearchString(dataInteractor.searchString)
 }

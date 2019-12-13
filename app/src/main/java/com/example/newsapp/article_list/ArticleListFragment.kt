@@ -26,7 +26,6 @@ class ArticleListFragment : Fragment(), ListView {
 
     private lateinit var settings: SharedPreferences
     private lateinit var listener: OnArticleSelected
-    private lateinit var dataInteractor: DataInteractor
     private val newsApiService by lazy {
         NewsApiService.create(resources.getString(R.string.base_url))
     }
@@ -58,7 +57,7 @@ class ArticleListFragment : Fragment(), ListView {
             resources.getString(R.string.search_string_key),
             resources.getString(R.string.search_string_default)
         )!!
-        dataInteractor = DataInteractor(
+        val dataInteractor = DataInteractor(
             newsApiService,
             BaseSchedulerProvider.SchedulerProvider(),
             resources.getInteger(R.integer.articles_per_page),
@@ -66,8 +65,8 @@ class ArticleListFragment : Fragment(), ListView {
             searchString
         )
         presenter = ListPresenter(this, dataInteractor)
-        listAdapter = ListAdapter(presenter::onItemClicked, presenter::onScrollToBottom)
-        presenter.onRefresh()
+        listAdapter = ListAdapter(presenter::onItemClicked, presenter::onLastItemShown)
+        presenter.loadData()
     }
 
     override fun onCreateView(
@@ -79,7 +78,9 @@ class ArticleListFragment : Fragment(), ListView {
         view.list_view.adapter = listAdapter
         view.toolbar.inflateMenu(R.menu.menu_toolbar)
         initMenuListener(view.toolbar.menu)
-        view.swipe.setOnRefreshListener { presenter.onRefresh() }
+        view.swipe.setOnRefreshListener {
+            presenter.resetInteractor().loadData()
+        }
         return view
     }
 
@@ -95,7 +96,7 @@ class ArticleListFragment : Fragment(), ListView {
         menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
                 searchView.onActionViewExpanded()
-                searchView.setQuery(dataInteractor.searchString, false)
+                searchView.setQuery(presenter.dataInteractor.searchString, false)
                 return true
             }
 
@@ -107,8 +108,7 @@ class ArticleListFragment : Fragment(), ListView {
                 settings.edit()
                     .putString(resources.getString(R.string.search_string_key), query)
                     .apply()
-                dataInteractor = dataInteractor.withSearchString(query)
-                presenter.onRefresh(dataInteractor)
+                presenter.setSearchString(query).loadData()
                 return false
             }
 
@@ -131,7 +131,7 @@ class ArticleListFragment : Fragment(), ListView {
     override fun showError(errorMessage: String?) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         swipe.isRefreshing = false
-        listAdapter.finishLoading()
+        listAdapter.setLoadingIsFinished()
     }
 
     override fun loadArticle(article: Article) {
