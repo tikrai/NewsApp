@@ -9,7 +9,7 @@ class DataInteractor(
     private val scheduleProvider: BaseSchedulerProvider,
     private val articlesPerPage: Int,
     private val apiKey: String,
-    val searchString: String
+    private val searchString: String
 ) {
     private var contents: ArrayList<Article> = ArrayList()
     private var pagesLoaded = 0

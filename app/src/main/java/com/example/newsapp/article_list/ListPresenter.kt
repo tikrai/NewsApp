@@ -42,6 +42,4 @@ class ListPresenter(
         dataInteractor = dataInteractor.withSearchString(searchString)
         return this
     }
-
-    fun resetInteractor(): ListPresenter = setSearchString(dataInteractor.searchString)
 }

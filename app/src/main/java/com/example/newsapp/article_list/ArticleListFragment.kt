@@ -11,6 +11,8 @@ import com.example.newsapp.BaseSchedulerProvider
 import com.example.newsapp.DataInteractor
 import com.example.newsapp.NewsApiService
 import com.example.newsapp.R
+import com.example.newsapp.SavedPreferenceString
+import com.example.newsapp.SearchString
 import com.example.newsapp.models.NewsApiResponse.Article
 import kotlinx.android.synthetic.main.fragment_article_list.swipe
 import kotlinx.android.synthetic.main.fragment_article_list.view.list_view
@@ -22,8 +24,9 @@ class ArticleListFragment : Fragment(), SearchBarView, ListView {
     private val newsApiService by lazy {
         NewsApiService.create(resources.getString(R.string.base_url))
     }
-    private lateinit var listPresenter: ListPresenter
+    private lateinit var searchString: SavedPreferenceString
     private lateinit var searchBarPresenter: SearchBarPresenter
+    private lateinit var listPresenter: ListPresenter
     private lateinit var listAdapter: ListAdapter
 
     companion object {
@@ -40,15 +43,16 @@ class ArticleListFragment : Fragment(), SearchBarView, ListView {
         } else {
             throw ClassCastException("$context must implement OnArticleSelected.")
         }
+        searchString = SearchString(context)
 
-        searchBarPresenter = SearchBarPresenter(this, context)
+        searchBarPresenter = SearchBarPresenter(this, searchString)
 
         val dataInteractor = DataInteractor(
             newsApiService,
             BaseSchedulerProvider.SchedulerProvider(),
             resources.getInteger(R.integer.articles_per_page),
             resources.getString(R.string.api_key),
-            searchBarPresenter.searchString
+            searchString.load()
         )
 
         listPresenter = ListPresenter(this, dataInteractor)
@@ -69,7 +73,7 @@ class ArticleListFragment : Fragment(), SearchBarView, ListView {
         view.list_view.adapter = listAdapter
 
         view.swipe.setOnRefreshListener {
-            listPresenter.resetInteractor().loadData()
+            listPresenter.setSearchString(searchString.load()).loadData()
         }
         return view
     }

@@ -8,6 +8,9 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -36,9 +39,9 @@ class DataInteractorTest {
             apiKey,
             searchString
         )
-        _when(newsApiService.getData(searchString, articlesPerPage, 1, apiKey))
+        _when(newsApiService.getData(anyString(), anyInt(), eq(1), anyString()))
             .thenReturn(Observable.just(Result("OK", 2, listOf(article1))))
-        _when(newsApiService.getData(searchString, articlesPerPage, 2, apiKey))
+        _when(newsApiService.getData(anyString(), anyInt(), eq(2), anyString()))
             .thenReturn(Observable.just(Result("OK", 2, listOf(article2))))
     }
 
@@ -92,8 +95,11 @@ class DataInteractorTest {
     @Test
     fun shouldCreateDataInteractorWithNewSearchString() {
         val newSearchString = "newSearchString"
+
         dataInteractor = dataInteractor.withSearchString(newSearchString)
-        assertEquals(newSearchString, dataInteractor.searchString)
+
+        dataInteractor.loadPage({ _, _ -> }, { })
+        verify(newsApiService).getData(newSearchString, articlesPerPage, 1, apiKey)
     }
 
     private fun setExpectedResults(items: List<Article?>, isFull: Boolean) {
