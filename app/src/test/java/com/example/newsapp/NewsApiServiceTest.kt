@@ -1,7 +1,6 @@
 package com.example.newsapp
 
-import com.example.newsapp.NewsApiService
-import com.example.newsapp.models.NewsApiResponse
+import com.example.newsapp.models.NewsApiResponse.Result
 import com.google.gson.JsonSyntaxException
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -12,6 +11,8 @@ import org.junit.Test
 import retrofit2.HttpException
 import java.net.HttpURLConnection.HTTP_BAD_REQUEST
 import java.net.HttpURLConnection.HTTP_OK
+import java.util.logging.Level
+import java.util.logging.Logger
 
 class NewsApiServiceTest {
     private var mockWebServer = MockWebServer()
@@ -39,9 +40,14 @@ class NewsApiServiceTest {
             "    ]\n" +
             "}"
 
+    private fun MockWebServer.startSilently() {
+        Logger.getLogger(this::class.java.name).level = Level.WARNING
+        start()
+    }
+
     @Before
     fun setup() {
-        mockWebServer.start()
+        mockWebServer.startSilently()
     }
 
     @After
@@ -58,7 +64,7 @@ class NewsApiServiceTest {
             .getData("x", 1, 1, "x")
             .blockingFirst()
 
-        val expected = NewsApiResponse.Result()
+        val expected = Result()
         Assert.assertEquals(expected, actual)
     }
 

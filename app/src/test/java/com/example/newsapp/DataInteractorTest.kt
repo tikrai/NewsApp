@@ -1,5 +1,6 @@
 package com.example.newsapp
 
+import com.example.newsapp.BaseSchedulerProvider.SchedulerProvider
 import com.example.newsapp.BaseSchedulerProvider.TrampolineSchedulerProvider
 import com.example.newsapp.models.NewsApiResponse.Article
 import com.example.newsapp.models.NewsApiResponse.Result
@@ -48,6 +49,22 @@ class DataInteractorTest {
     @After
     fun verifyMocks() {
         verifyNoMoreInteractions(newsApiService)
+    }
+
+    @Test(expected = ExceptionInInitializerError::class)
+    fun shouldFailIfNoTrampolineScheduleProviderIsUsedForTest() {
+        dataInteractor = DataInteractor(
+            newsApiService,
+            SchedulerProvider(),
+            articlesPerPage,
+            apiKey,
+            searchString
+        )
+        try {
+            dataInteractor.loadPage({ _, _ -> }, { })
+        } finally {
+            verify(newsApiService).getData(searchString, articlesPerPage, 1, apiKey)
+        }
     }
 
     @Test
